@@ -1,0 +1,81 @@
+# ─── Template for all Viralis service deployments ─────────────────────────────
+# Generated variables:  SERVICE_NAME, SERVICE_PORT, IMAGE_NAME
+# Apply with: kubectl apply -f k8s/<service>-deployment.yaml
+
+# ──────────────────────────────── ingestion ────────────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ingestion-service
+  namespace: production
+  labels:
+    app: ingestion-service
+    version: latest
+spec:
+  replicas: 2
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: ingestion-service
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: ingestion-service
+    spec:
+      containers:
+        - name: ingestion-service
+          image: rahijamil/viralis-ingestion:latest
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 6
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "250m"
+          env:
+            - name: ENV
+              value: production
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ingestion-service
+  namespace: production
+spec:
+  selector:
+    app: ingestion-service
+  ports:
+    - port: 80
+      targetPort: 8080
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: ingestion-service-pdb
+  namespace: production
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: ingestion-service

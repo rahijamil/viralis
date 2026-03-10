@@ -1,0 +1,87 @@
+name: Auto-Rollback on Failure
+
+on:
+  workflow_run:
+    workflows: ["Deploy to Production"]
+    types: [completed]
+  schedule:
+    - cron: "*/5 * * * *" # Health-check every 5 minutes
+
+concurrency:
+  group: auto-rollback
+  cancel-in-progress: true
+
+env:
+  NAMESPACE: production
+
+jobs:
+  # ─── Triggered when Deploy to Production fails ──────────────────────────────
+  handle-deployment-failure:
+    if: >
+      github.event_name == 'workflow_run' &&
+      github.event.workflow_run.conclusion == 'failure'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: Set up kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBECONFIG_B64 }}" | base64 -d > ~/.kube/config
+          kubectl cluster-info
+
+      - name: Log failure context
+        run: |
+          echo "⚠️  Deployment workflow failed"
+          echo "  Workflow     : ${{ github.event.workflow_run.name }}"
+          echo "  Run ID       : ${{ github.event.workflow_run.id }}"
+          echo "  Head SHA     : ${{ github.event.workflow_run.head_sha }}"
+
+      - name: Trigger auto-rollback
+        run: |
+          bash ./scripts/rollback.sh --all --auto-trigger --namespace "$NAMESPACE"
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+
+      - name: Run smoke tests after rollback
+        run: bash ./scripts/smoke-test.sh all
+        continue-on-error: true
+
+  # ─── Scheduled health check (every 5 min) ───────────────────────────────────
+  periodic-health-check:
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: Set up kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBECONFIG_B64 }}" | base64 -d > ~/.kube/config
+
+      - name: Run health checks
+        id: health
+        run: bash ./scripts/check-health.sh
+        continue-on-error: true
+        env:
+          NAMESPACE: ${{ env.NAMESPACE }}
+          PROMETHEUS_URL: ${{ secrets.PROMETHEUS_URL }}
+
+      - name: Auto-rollback if unhealthy
+        if: steps.health.outcome == 'failure'
+        run: |
+          echo "❌ Health checks failed — triggering auto-rollback…"
+          bash ./scripts/rollback.sh --all --auto-trigger --namespace "$NAMESPACE"
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+
+      - name: Run smoke tests after rollback
+        if: steps.health.outcome == 'failure'
+        run: bash ./scripts/smoke-test.sh all
+        continue-on-error: true
