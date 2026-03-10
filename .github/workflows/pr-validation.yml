@@ -1,0 +1,197 @@
+name: PR Validation
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: "3.11"
+  GO_VERSION: "1.21"
+  NODE_VERSION: "20"
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      python_services: ${{ steps.filter.outputs.python_services }}
+      go_services: ${{ steps.filter.outputs.go_services }}
+      node_services: ${{ steps.filter.outputs.node_services }}
+      docker_changed: ${{ steps.filter.outputs.docker }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            python_services:
+              - 'services/ingestion/**'
+              - 'services/crawler/**'
+              - 'services/analytics/**'
+              - 'services/user/**'
+            go_services:
+              - 'services/ingestion-go/**'
+            node_services:
+              - 'services/alert/**'
+              - 'services/dashboard/**'
+            docker:
+              - '**/Dockerfile'
+              - '**/docker-compose*.yml'
+
+  validate-python:
+    needs: detect-changes
+    if: ${{ needs.detect-changes.outputs.python_services == 'true' }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [ingestion, crawler, analytics, user]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check if service changed
+        id: check
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            changed:
+              - 'services/${{ matrix.service }}/**'
+
+      - name: Set up Python
+        if: steps.check.outputs.changed == 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: "pip"
+
+      - name: Install dependencies
+        if: steps.check.outputs.changed == 'true'
+        working-directory: services/${{ matrix.service }}
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Lint and Test
+        if: steps.check.outputs.changed == 'true'
+        working-directory: services/${{ matrix.service }}
+        run: |
+          flake8 .
+          black --check .
+          isort --check .
+          mypy .
+          bandit -r .
+          if [ -d tests ]; then pytest --cov=. --cov-fail-under=80; fi
+
+  validate-go:
+    needs: detect-changes
+    if: ${{ needs.detect-changes.outputs.go_services == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+      - name: Lint
+        uses: golangci/golangci-lint-action@v4
+        with:
+          version: latest
+          working-directory: services/ingestion-go
+      - name: Test
+        working-directory: services/ingestion-go
+        run: go test -race -cover ./...
+
+  validate-node:
+    needs: detect-changes
+    if: ${{ needs.detect-changes.outputs.node_services == 'true' }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [alert, dashboard]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check if service changed
+        id: check
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            changed:
+              - 'services/${{ matrix.service }}/**'
+
+      - name: Set up Node.js
+        if: steps.check.outputs.changed == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+          cache-dependency-path: services/${{ matrix.service }}/package-lock.json
+
+      - name: Install and Test
+        if: steps.check.outputs.changed == 'true'
+        working-directory: services/${{ matrix.service }}
+        run: |
+          npm ci
+          npm run lint || npx eslint .
+          npx prettier --check .
+          if [ -f tsconfig.json ]; then npx tsc --noEmit; fi
+          npm test
+
+  validate-docker:
+    needs: detect-changes
+    if: ${{ needs.detect-changes.outputs.docker_changed == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Lint Dockerfiles
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: "**/Dockerfile"
+
+  pr-quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check PR title
+        uses: deepakputhraya/action-pr-title@master
+        with:
+          regex: '^(feat|fix|docs|style|refactor|perf|test|chore)(\(.+\))?: .{1,50}$'
+      - name: Check PR size
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+            if (pr.additions + pr.deletions > 500) {
+              core.warning('PR is large. Consider splitting.');
+            }
+
+  dependency-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Scan Python dependencies
+        run: |
+          pip install safety
+          find . -name "requirements*.txt" -exec safety check -r {} \;
+        continue-on-error: true
+
+      - name: Scan Node.js dependencies
+        run: |
+          find services -name "package-lock.json" -exec sh -c 'cd $(dirname {}) && npm audit' \;
+        continue-on-error: true
+
+      - name: Scan Go dependencies
+        uses: sonatype-nexus-community/nancy-github-action@main
+        with:
+          go-list-file: services/ingestion-go/go.mod

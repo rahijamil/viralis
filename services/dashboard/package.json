@@ -4,7 +4,9 @@
   "description": "Viralis microservice",
   "main": "src/index.js",
   "scripts": {
-    "start": "node src/index.js"
+    "start": "node src/index.js",
+    "lint": "eslint .",
+    "test": "jest"
   },
   "dependencies": {
     "dotenv": "^16.4.5",

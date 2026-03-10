@@ -1,33 +1,55 @@
 ## Description
 
-Provide a clear description of the changes introduced by this pull request.
+<!-- Provide a brief description of the changes in this PR -->
 
-## Related Issue
-
-Fixes # (issue)
+Fixes #
 
 ## Type of Change
 
-- [ ] Bug fix (non-breaking change which fixes an issue)
-- [ ] New feature (non-breaking change which adds functionality)
-- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
+- [ ] Bug fix (non-breaking change)
+- [ ] New feature (non-breaking change)
+- [ ] Breaking change (fix or feature that breaks existing functionality)
 - [ ] Documentation update
+- [ ] Refactor (no functional changes)
 
-## Testing Done
+## Services Affected
 
-Explain the testing you've done to verify your changes. Include any relevant details about your test configuration.
+<!-- Check all that apply -->
 
-## Screenshots (if applicable)
+- [ ] Ingestion Service
+- [ ] Crawler Service
+- [ ] Analytics Service
+- [ ] Alert Service
+- [ ] User Service
+- [ ] Dashboard
+- [ ] Infrastructure (CI/CD, Docker, K8s)
 
-If your changes affect the UI, please provide screenshots or GIFs of the before and after states.
+## Testing Performed
+
+- [ ] Unit tests added/updated
+- [ ] Integration tests added/updated
+- [ ] Manual testing performed
+- [ ] Tested in staging environment
+
+## Test Coverage
+
+<!-- If applicable, add test coverage information -->
+
+Current coverage: XX%
+
+## Screenshots
+
+<!-- If UI changes, add screenshots -->
 
 ## Checklist
 
-- [ ] My code follows the style guidelines of this project
-- [ ] I have performed a self-review of my own code
-- [ ] I have commented my code, particularly in hard-to-understand areas
-- [ ] I have made corresponding changes to the documentation
+- [ ] My code follows the project style guidelines
+- [ ] I have performed a self review of my code
+- [ ] I have commented complex code, particularly in hard-to-understand areas
+- [ ] I have updated the documentation accordingly
 - [ ] My changes generate no new warnings
-- [ ] I have added tests that prove my fix is effective or that my feature works
-- [ ] New and existing unit tests pass locally with my changes
-- [ ] Any dependent changes have been merged and published in downstream modules
+- [ ] Any dependent changes have been merged
+
+## Additional Notes
+
+<!-- Any other information that reviewers should know -->

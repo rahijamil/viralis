@@ -85,18 +85,35 @@ To simplify your workflow, we use a `Makefile`. Run `make help` to see all avail
 | `make seed`     | Manually trigger database seeding.             |
 | `make build`    | Build all Docker images locally.               |
 
+| `make build` | Build all Docker images locally. |
+
 ## 🚀 CI/CD Pipeline
 
-We use GitHub Actions to automate our Docker builds. The workflow:
+We use GitHub Actions for automated quality assurance and deployment:
 
-1. **Builds** all 6 microservices and the dashboard in parallel.
-2. **Tags** images based on the branch (PR, Main, or Release).
-3. **Scans** for vulnerabilities using Trivy.
-4. **Pushes** multi-arch (`amd64`, `arm64`) images to Docker Hub.
+### 1. PR Validation (`pr-validation.yml`)
+
+Runs on every pull request to `main`:
+
+- **Parallel Testing**: Matrix strategy to validate Python, Go, and Node.js services independently.
+- **Path Filtering**: Only tests services that have changed in the PR.
+- **Security Scanning**: Scans dependencies for vulnerabilities (`safety`, `npm audit`, `nancy`).
+- **Quality Gates**: Enforces conventional PR titles and template completion.
+
+### 2. Docker Build (`docker-build.yml`)
+
+Runs on merge to `main` or release tags:
+
+- Builds and pushes multi-arch (`amd64`, `arm64`) images to Docker Hub.
+- Per-service vulnerability scanning with **Trivy**.
 
 ### Validate Build Setup
 
-Run the following script to ensure your environment and GitHub secrets are correctly configured:
+Run this script to verify your local environment and GitHub secrets:
+
+```bash
+./scripts/validate-build-setup.sh
+```
 
 ```bash
 ./scripts/validate-build-setup.sh
