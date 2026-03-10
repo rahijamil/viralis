@@ -1,0 +1,16 @@
+# Python ignore
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+env/
+.env
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+*.swp
+*.bak
+.DS_Store

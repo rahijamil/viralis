@@ -21,6 +21,7 @@ The system is composed of several key components:
 - **Languages**: Python, Go
 - **Infrastructure**: PostgreSQL, Redis, Kafka, Qdrant
 - **DevOps**: Docker, GitHub Actions, `dbmate` (Migrations)
+- **CI/CD**: Automated Multi-arch Docker builds (amd64/arm64) with Trivy security scanning.
 
 ## 📋 Prerequisites
 
@@ -82,6 +83,24 @@ To simplify your workflow, we use a `Makefile`. Run `make help` to see all avail
 | `make test`     | Run all linting and quality checks.            |
 | `make db-shell` | Access the PostgreSQL interactive shell.       |
 | `make seed`     | Manually trigger database seeding.             |
+| `make build`    | Build all Docker images locally.               |
+
+## 🚀 CI/CD Pipeline
+
+We use GitHub Actions to automate our Docker builds. The workflow:
+
+1. **Builds** all 6 microservices and the dashboard in parallel.
+2. **Tags** images based on the branch (PR, Main, or Release).
+3. **Scans** for vulnerabilities using Trivy.
+4. **Pushes** multi-arch (`amd64`, `arm64`) images to Docker Hub.
+
+### Validate Build Setup
+
+Run the following script to ensure your environment and GitHub secrets are correctly configured:
+
+```bash
+./scripts/validate-build-setup.sh
+```
 
 ## 🧪 Running Tests
 

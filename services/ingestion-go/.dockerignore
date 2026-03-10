@@ -1,0 +1,8 @@
+# Go ignore
+bin/
+pkg/
+vendor/
+.env
+*.swp
+*.bak
+.DS_Store

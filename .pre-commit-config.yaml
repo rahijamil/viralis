@@ -41,13 +41,23 @@ repos:
         args: ["-c", "pyproject.toml"]
         additional_dependencies: ["bandit[toml]"]
 
-  # Go hooks
-  - repo: https://github.com/dnephin/pre-commit-golang
-    rev: v0.5.1
+  - repo: local
     hooks:
       - id: go-fmt
+        name: go fmt
+        entry: /opt/homebrew/bin/gofmt -w
+        language: system
+        types: [go]
       - id: go-imports
+        name: go imports
+        entry: /Users/rahijamil/go/bin/goimports -w
+        language: system
+        types: [go]
       - id: golangci-lint
+        name: golangci-lint
+        entry: /opt/homebrew/bin/golangci-lint run --fix
+        language: system
+        types: [go]
 
   # Node.js hooks
   - repo: https://github.com/pre-commit/mirrors-eslint
@@ -58,6 +68,7 @@ repos:
         additional_dependencies:
           - eslint@8.57.0
           - eslint-config-airbnb
+          - eslint-config-airbnb-base
           - eslint-config-prettier
           - eslint-plugin-import
           - eslint-plugin-react
