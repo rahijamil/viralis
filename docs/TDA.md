@@ -33,6 +33,7 @@
 Viralis is architected as a **cloud-native, event-driven microservices platform** designed for real-time trend detection and AI-powered analysis. The system prioritizes **low-latency ingestion**, **cost-efficient AI inference**, and **horizontal scalability** to handle viral traffic spikes.
 
 **Key Architectural Decisions:**
+
 - **Microservices** over monolith for independent scaling of ingestion vs. AI
 - **Event-driven** with Apache Kafka for reliable data pipelines
 - **Vector-native** storage for semantic search and deduplication
@@ -46,42 +47,46 @@ Viralis is architected as a **cloud-native, event-driven microservices platform*
 
 ### 2.1 Functional Requirements (from PRD)
 
-| ID | Requirement | Priority |
-|----|-------------|----------|
-| F-01 | Ingest data from X, Reddit, RSS feeds | P0 |
-| F-02 | Detect anomalies using statistical thresholds | P0 |
-| F-03 | Generate AI summaries via LLM | P0 |
-| F-04 | Store embeddings for semantic search | P0 |
-| F-05 | Deliver alerts via Discord/Slack | P0 |
-| F-06 | Support user-defined tracking topics | P1 |
-| F-07 | Provide historical trend analysis | P1 |
-| F-08 | Export reports (PDF/CSV) | P2 |
+| ID   | Requirement                                   | Priority |
+| ---- | --------------------------------------------- | -------- |
+| F-01 | Ingest data from X, Reddit, RSS feeds         | P0       |
+| F-02 | Detect anomalies using statistical thresholds | P0       |
+| F-03 | Generate AI summaries via LLM                 | P0       |
+| F-04 | Store embeddings for semantic search          | P0       |
+| F-05 | Deliver alerts via Discord/Slack              | P0       |
+| F-06 | Support user-defined tracking topics          | P1       |
+| F-07 | Provide historical trend analysis             | P1       |
+| F-08 | Export reports (PDF/CSV)                      | P2       |
 
 ### 2.2 Non-Functional Requirements
 
 #### Performance
-| Metric | Target | Measurement |
-|--------|--------|-------------|
-| **Ingestion latency** | < 30s from post to detection | End-to-end monitoring |
-| **AI analysis time** | < 10s per trend | Service-level timing |
-| **Dashboard response** | < 300ms p95 | Frontend monitoring |
-| **Alert delivery** | < 60s from detection | Webhook timing |
+
+| Metric                 | Target                       | Measurement           |
+| ---------------------- | ---------------------------- | --------------------- |
+| **Ingestion latency**  | < 30s from post to detection | End-to-end monitoring |
+| **AI analysis time**   | < 10s per trend              | Service-level timing  |
+| **Dashboard response** | < 300ms p95                  | Frontend monitoring   |
+| **Alert delivery**     | < 60s from detection         | Webhook timing        |
 
 #### Scalability
-| Metric | Current Target | Year 2 Target |
-|--------|----------------|---------------|
-| **Concurrent users** | 1,000 | 10,000 |
-| **Daily events processed** | 100,000 | 1,000,000 |
-| **Tracked topics** | 5,000 | 50,000 |
-| **Storage growth** | 50GB/month | 500GB/month |
+
+| Metric                     | Current Target | Year 2 Target |
+| -------------------------- | -------------- | ------------- |
+| **Concurrent users**       | 1,000          | 10,000        |
+| **Daily events processed** | 100,000        | 1,000,000     |
+| **Tracked topics**         | 5,000          | 50,000        |
+| **Storage growth**         | 50GB/month     | 500GB/month   |
 
 #### Availability & Reliability
+
 - **Uptime:** 99.5% (excluding planned maintenance)
 - **RTO (Recovery Time Objective):** < 4 hours
 - **RPO (Recovery Point Objective):** < 15 minutes
 - **Backup:** Daily automated with 30-day retention
 
 #### Security
+
 - **Authentication:** OAuth 2.0 + JWT
 - **Data encryption:** TLS 1.3 (transit), AES-256 (at rest)
 - **Compliance:** GDPR, CCPA (data deletion capability)
@@ -154,6 +159,7 @@ Viralis is architected as a **cloud-native, event-driven microservices platform*
 ### 3.2 Component Descriptions
 
 #### **Ingestion Service (Go)**
+
 - **Purpose:** Poll APIs, detect anomalies, publish raw events
 - **Why Go?** Excellent concurrency for multiple API calls
 - **Key libraries:** `net/http`, `go-redis`, `confluent-kafka-go`
@@ -161,6 +167,7 @@ Viralis is architected as a **cloud-native, event-driven microservices platform*
 - **Criticality:** High - data loss possible if fails
 
 #### **Crawler Service (Python)**
+
 - **Purpose:** Deep-dive scraping using Crawl4AI, convert to markdown
 - **Why Python?** Crawl4AI is Python-native, BeautifulSoup ecosystem
 - **Key libraries:** `crawl4ai`, `aiohttp`, `beautifulsoup4`
@@ -168,6 +175,7 @@ Viralis is architected as a **cloud-native, event-driven microservices platform*
 - **Criticality:** Medium - can degrade gracefully
 
 #### **Analytics Service (Python)**
+
 - **Purpose:** LLM inference, embedding generation, sentiment analysis
 - **Why Python?** ML/AI ecosystem (LangChain, LlamaIndex, Transformers)
 - **Key libraries:** `langchain`, `openai`, `sentence-transformers`
@@ -175,6 +183,7 @@ Viralis is architected as a **cloud-native, event-driven microservices platform*
 - **Criticality:** Medium - degraded experience without summaries
 
 #### **Alert Service (Node.js)**
+
 - **Purpose:** Deliver notifications to Discord/Slack/Email
 - **Why Node.js?** Excellent for webhook delivery, evented I/O
 - **Key libraries:** `discord.js`, `@slack/web-api`, `nodemailer`
@@ -182,6 +191,7 @@ Viralis is architected as a **cloud-native, event-driven microservices platform*
 - **Criticality:** Medium - alerts can be delayed
 
 #### **User Service (Python)**
+
 - **Purpose:** Authentication, user preferences, billing
 - **Key libraries:** `FastAPI`, `SQLAlchemy`, `authlib`
 - **Scaling:** Horizontal, stateless
@@ -209,7 +219,7 @@ Environment Architecture:
     Access:
       - Developer only
       - No external exposure
-  
+
   Staging:
     Purpose: Integration testing, UAT, performance testing
     Infrastructure:
@@ -224,7 +234,7 @@ Environment Architecture:
       - Internal team
       - Beta testers (invite-only)
       - CI/CD pipeline
-    
+
   Production:
     Purpose: Live user traffic
     Infrastructure:
@@ -242,19 +252,20 @@ Environment Architecture:
 
 ### 4.2 Deployment Strategy by Service
 
-| Service | Deployment Strategy | Justification | PDB | Update Strategy |
-|---------|---------------------|---------------|-----|-----------------|
-| **Ingestion** | Rolling update | Stateless, can lose some capacity during update | minAvailable 2 | maxSurge 25%, maxUnavailable 25% |
-| **Crawler** | Rolling update | Stateless, retries handle temporary failures | minAvailable 1 | maxSurge 50%, maxUnavailable 0 |
-| **Analytics** | Blue/Green | LLM model versions need validation | N/A | Full switch after validation |
-| **Alert** | Rolling update | Stateless, idempotent delivery | minAvailable 2 | maxSurge 25%, maxUnavailable 25% |
-| **User** | Rolling update | Stateless, but session affinity recommended | minAvailable 2 | maxSurge 25%, maxUnavailable 25% |
-| **PostgreSQL** | StatefulSet with automated failover | Stateful, data critical | minAvailable 1 (primary) | Manual with replication |
-| **Kafka** | StatefulSet | Stateful, message persistence | minAvailable 2 | Rolling with care |
+| Service        | Deployment Strategy                 | Justification                                   | PDB                      | Update Strategy                  |
+| -------------- | ----------------------------------- | ----------------------------------------------- | ------------------------ | -------------------------------- |
+| **Ingestion**  | Rolling update                      | Stateless, can lose some capacity during update | minAvailable 2           | maxSurge 25%, maxUnavailable 25% |
+| **Crawler**    | Rolling update                      | Stateless, retries handle temporary failures    | minAvailable 1           | maxSurge 50%, maxUnavailable 0   |
+| **Analytics**  | Blue/Green                          | LLM model versions need validation              | N/A                      | Full switch after validation     |
+| **Alert**      | Rolling update                      | Stateless, idempotent delivery                  | minAvailable 2           | maxSurge 25%, maxUnavailable 25% |
+| **User**       | Rolling update                      | Stateless, but session affinity recommended     | minAvailable 2           | maxSurge 25%, maxUnavailable 25% |
+| **PostgreSQL** | StatefulSet with automated failover | Stateful, data critical                         | minAvailable 1 (primary) | Manual with replication          |
+| **Kafka**      | StatefulSet                         | Stateful, message persistence                   | minAvailable 2           | Rolling with care                |
 
 ### 4.3 Kubernetes Manifests (Examples)
 
 #### Ingestion Service Deployment
+
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
@@ -279,53 +290,54 @@ spec:
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 100
-            podAffinityTerm:
-              labelSelector:
-                matchExpressions:
-                - key: app
-                  operator: In
-                  values:
-                  - ingestion-service
-              topologyKey: kubernetes.io/hostname
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - ingestion-service
+                topologyKey: kubernetes.io/hostname
       containers:
-      - name: ingestion
-        image: viralis/ingestion-service:latest
-        ports:
-        - containerPort: 8080
-        resources:
-          requests:
-            memory: "256Mi"
-            cpu: "250m"
-          limits:
-            memory: "512Mi"
-            cpu: "500m"
-        env:
-        - name: KAFKA_BROKERS
-          valueFrom:
-            configMapKeyRef:
-              name: kafka-config
-              key: brokers
-        - name: REDIS_URL
-          valueFrom:
-            secretKeyRef:
-              name: redis-secret
-              key: url
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: 8080
-          initialDelaySeconds: 30
-          periodSeconds: 10
-        readinessProbe:
-          httpGet:
-            path: /ready
-            port: 8080
-          initialDelaySeconds: 5
-          periodSeconds: 5
+        - name: ingestion
+          image: viralis/ingestion-service:latest
+          ports:
+            - containerPort: 8080
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          env:
+            - name: KAFKA_BROKERS
+              valueFrom:
+                configMapKeyRef:
+                  name: kafka-config
+                  key: brokers
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: redis-secret
+                  key: url
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 5
 ```
 
 #### Pod Disruption Budget
+
 ```yaml
 apiVersion: policy/v1
 kind: PodDisruptionBudget
@@ -348,7 +360,7 @@ name: Deploy to Production
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
 
 jobs:
   test:
@@ -370,7 +382,7 @@ jobs:
         run: |
           docker build -t viralis/ingestion-service:${{ github.sha }} .
           docker push viralis/ingestion-service:${{ github.sha }}
-  
+
   deploy-staging:
     needs: build
     runs-on: ubuntu-latest
@@ -383,7 +395,7 @@ jobs:
             -n staging
       - name: Run smoke tests
         run: make smoke-tests-staging
-  
+
   deploy-production:
     needs: deploy-staging
     runs-on: ubuntu-latest
@@ -475,6 +487,7 @@ kubectl patch service $SERVICE -p '{"spec":{"selector":{"app":"'$SERVICE'"}}}'
 ### 5.2 Database Schema
 
 #### PostgreSQL (Relational Data)
+
 ```sql
 -- Users table
 CREATE TABLE users (
@@ -535,11 +548,12 @@ CREATE INDEX idx_alerts_user_created ON alerts(user_id, created_at DESC);
 ```
 
 #### Vector Database (Qdrant/Pinecone)
+
 ```json
 {
   "collection": "trend_embeddings",
   "vectors": {
-    "size": 1536,  // OpenAI embedding size
+    "size": 1536, // OpenAI embedding size
     "distance": "Cosine"
   },
   "payload": {
@@ -562,6 +576,7 @@ CREATE INDEX idx_alerts_user_created ON alerts(user_id, created_at DESC);
 ```
 
 #### Redis Cache Schema
+
 ```
 # Session storage
 SESSION:{user_id} -> {user_data, expires}
@@ -604,25 +619,25 @@ DECLARE
 BEGIN
     -- Move trends older than 30 days to archive table
     WITH archived AS (
-        INSERT INTO trends_archive 
-        SELECT * FROM trends 
+        INSERT INTO trends_archive
+        SELECT * FROM trends
         WHERE detected_at < NOW() - INTERVAL '30 days'
         RETURNING id
     )
     SELECT COUNT(*) INTO archived_count FROM archived;
-    
+
     -- Delete from main table
-    DELETE FROM trends 
+    DELETE FROM trends
     WHERE detected_at < NOW() - INTERVAL '30 days';
-    
+
     -- For vector DB: Delete embeddings older than 7 days
     -- (keep vectors for active search only)
     -- This is handled by application code with TTL
-    
+
     -- Log archival
     INSERT INTO data_retention_logs (action, records_affected, timestamp)
     VALUES ('archive_trends', archived_count, NOW());
-    
+
     RAISE NOTICE 'Archived % old trends', archived_count;
 END;
 $$ LANGUAGE plpgsql;
@@ -659,13 +674,13 @@ SELECT cron.schedule(
 async def cleanup_old_embeddings():
     """Delete embeddings older than 7 days"""
     cutoff = datetime.now() - timedelta(days=7)
-    
+
     # Get trend IDs older than cutoff
     old_trends = await db.fetch(
         "SELECT id FROM trends WHERE detected_at < $1",
         cutoff
     )
-    
+
     # Delete from vector DB in batches
     for i in range(0, len(old_trends), 100):
         batch = [t['id'] for t in old_trends[i:i+100]]
@@ -673,30 +688,30 @@ async def cleanup_old_embeddings():
             collection="trend_embeddings",
             filter={"trend_id": {"in": batch}}
         )
-    
+
     logger.info(f"Cleaned up {len(old_trends)} old embeddings")
 ```
 
 ### 5.5 Data Migration Strategy
 
-```yaml
+````yaml
 Migration Principles:
   - Always backward compatible (add columns, don't remove)
   - Rollback scripts for every migration
   - Tested on staging before production
   - Zero-downtime migrations preferred
-  
+
 Migration Types:
   Schema Changes:
     - Add column: ALTER TABLE ... ADD COLUMN (safe)
     - Remove column: Mark as deprecated first, remove after 2 releases
     - Rename column: Add new, dual-write, migrate, remove old
-  
+
   Data Migrations:
     - Background jobs for large datasets
     - Chunked processing (1000 records at a time)
     - Progress tracking and resumability
-    
+
 Example Migration:
 ```sql
 -- 20260301_add_embedding_version.sql
@@ -707,16 +722,16 @@ ALTER TABLE trends ADD COLUMN embedding_version INT DEFAULT 1;
 async def migrate_embeddings():
     batch_size = 100
     offset = 0
-    
+
     while True:
         trends = await db.fetch(
             "SELECT id, ai_summary FROM trends WHERE embedding_version = 1 LIMIT $1 OFFSET $2",
             batch_size, offset
         )
-        
+
         if not trends:
             break
-            
+
         for trend in trends:
             # Generate new embedding
             embedding = await generate_embedding(trend['ai_summary'])
@@ -725,12 +740,12 @@ async def migrate_embeddings():
                 "UPDATE trends SET embedding_version = 2 WHERE id = $1",
                 trend['id']
             )
-        
+
         offset += batch_size
-        
+
 -- Step 3: After all migrated, make new column default
 ALTER TABLE trends ALTER COLUMN embedding_version SET DEFAULT 2;
-```
+````
 
 ---
 
@@ -790,7 +805,7 @@ components:
                 reset_at:
                   type: string
                   format: date-time
-    
+
     Trend:
       type: object
       properties:
@@ -814,10 +829,10 @@ components:
         topic_id:
           type: string
           format: uuid
-    
+
     TrendDetail:
       allOf:
-        - $ref: '#/components/schemas/Trend'
+        - $ref: "#/components/schemas/Trend"
         - type: object
           properties:
             sources:
@@ -847,7 +862,7 @@ components:
             embedding_similar:
               type: array
               items:
-                $ref: '#/components/schemas/Trend'
+                $ref: "#/components/schemas/Trend"
             historical_context:
               type: object
               properties:
@@ -858,7 +873,7 @@ components:
                 trend_direction:
                   type: string
                   enum: [rising, falling, peaking, stable]
-    
+
     TopicCreate:
       type: object
       required:
@@ -896,10 +911,10 @@ components:
                 enum: [email, discord, slack]
               target:
                 type: string
-    
+
     Topic:
       allOf:
-        - $ref: '#/components/schemas/TopicCreate'
+        - $ref: "#/components/schemas/TopicCreate"
         - type: object
           properties:
             id:
@@ -924,31 +939,31 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Error'
+            $ref: "#/components/schemas/Error"
     Unauthorized:
       description: Authentication required
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Error'
+            $ref: "#/components/schemas/Error"
     Forbidden:
       description: Insufficient permissions
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Error'
+            $ref: "#/components/schemas/Error"
     NotFound:
       description: Resource not found
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Error'
+            $ref: "#/components/schemas/Error"
     TooManyRequests:
       description: Rate limit exceeded
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Error'
+            $ref: "#/components/schemas/Error"
 
 security:
   - bearerAuth: []
@@ -1003,7 +1018,7 @@ paths:
             type: string
             format: date-time
       responses:
-        '200':
+        "200":
           description: List of trends
           content:
             application/json:
@@ -1013,7 +1028,7 @@ paths:
                   data:
                     type: array
                     items:
-                      $ref: '#/components/schemas/Trend'
+                      $ref: "#/components/schemas/Trend"
                   pagination:
                     type: object
                     properties:
@@ -1029,12 +1044,12 @@ paths:
                       prev:
                         type: string
                         format: uri
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
 
   /trends/{trend_id}:
     get:
@@ -1051,16 +1066,16 @@ paths:
             type: string
             format: uuid
       responses:
-        '200':
+        "200":
           description: Trend details
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TrendDetail'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                $ref: "#/components/schemas/TrendDetail"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
   /topics:
     get:
@@ -1076,15 +1091,15 @@ paths:
             type: boolean
             default: false
       responses:
-        '200':
+        "200":
           description: List of topics
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Topic'
-    
+                  $ref: "#/components/schemas/Topic"
+
     post:
       summary: Create tracking topic
       description: Creates a new topic to monitor for trends
@@ -1096,24 +1111,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TopicCreate'
+              $ref: "#/components/schemas/TopicCreate"
       responses:
-        '201':
+        "201":
           description: Topic created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Topic'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
+                $ref: "#/components/schemas/Topic"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
           description: Plan limit exceeded
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
 
   /topics/{topic_id}:
     get:
@@ -1129,13 +1144,13 @@ paths:
             type: string
             format: uuid
       responses:
-        '200':
+        "200":
           description: Topic details
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Topic'
-    
+                $ref: "#/components/schemas/Topic"
+
     put:
       summary: Update topic
       operationId: updateTopic
@@ -1150,15 +1165,15 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TopicCreate'
+              $ref: "#/components/schemas/TopicCreate"
       responses:
-        '200':
+        "200":
           description: Topic updated
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Topic'
-    
+                $ref: "#/components/schemas/Topic"
+
     delete:
       summary: Delete topic
       operationId: deleteTopic
@@ -1169,7 +1184,7 @@ paths:
           in: path
           required: true
       responses:
-        '204':
+        "204":
           description: Topic deleted
 
   /alerts:
@@ -1190,7 +1205,7 @@ paths:
             type: string
             enum: [pending, sent, failed]
       responses:
-        '200':
+        "200":
           description: Alert history
           content:
             application/json:
@@ -1203,7 +1218,7 @@ paths:
                       type: string
                       format: uuid
                     trend:
-                      $ref: '#/components/schemas/Trend'
+                      $ref: "#/components/schemas/Trend"
                     channel:
                       type: string
                     status:
@@ -1232,14 +1247,14 @@ paths:
             type: integer
             default: 10
       responses:
-        '200':
+        "200":
           description: Search results
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Trend'
+                  $ref: "#/components/schemas/Trend"
 
   /health:
     get:
@@ -1247,9 +1262,9 @@ paths:
       description: Returns service health status
       tags:
         - System
-      security: []  # No auth required
+      security: [] # No auth required
       responses:
-        '200':
+        "200":
           description: Service healthy
           content:
             application/json:
@@ -1308,6 +1323,7 @@ Link: <https://api.viralis.ai/v2/trends>; rel="successor-version"
 ```
 
 **HTTP Status Codes:**
+
 - `200` - Success
 - `201` - Created
 - `204` - No Content (successful delete)
@@ -1401,27 +1417,30 @@ Webhook Format:
 ```
 
 **Token Lifetimes:**
+
 - Access token: 15 minutes
 - Refresh token: 7 days
 - Remember me: 30 days
 
 ### 7.3 Authorization Matrix
 
-| Role | View Trends | Create Topics | Manage Alerts | Admin | Billing |
-|------|-------------|---------------|---------------|-------|---------|
-| **Anonymous** | ❌ | ❌ | ❌ | ❌ | ❌ |
-| **Free User** | ✅ (delayed) | ✅ (2 max) | ✅ (email) | ❌ | ❌ |
-| **Pro User** | ✅ (real-time) | ✅ (10 max) | ✅ (Discord/Slack) | ❌ | ❌ |
-| **Enterprise** | ✅ (unlimited) | ✅ (unlimited) | ✅ (custom) | ❌ | ❌ |
-| **Admin** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Role           | View Trends    | Create Topics  | Manage Alerts      | Admin | Billing |
+| -------------- | -------------- | -------------- | ------------------ | ----- | ------- |
+| **Anonymous**  | ❌             | ❌             | ❌                 | ❌    | ❌      |
+| **Free User**  | ✅ (delayed)   | ✅ (2 max)     | ✅ (email)         | ❌    | ❌      |
+| **Pro User**   | ✅ (real-time) | ✅ (10 max)    | ✅ (Discord/Slack) | ❌    | ❌      |
+| **Enterprise** | ✅ (unlimited) | ✅ (unlimited) | ✅ (custom)        | ❌    | ❌      |
+| **Admin**      | ✅             | ✅             | ✅                 | ✅    | ✅      |
 
 ### 7.4 Data Encryption
 
 - **In transit:** TLS 1.3 (minimum)
+
   - HSTS enabled (max-age=31536000)
   - Perfect Forward Secrecy required
-  
-- **At rest:** 
+
+- **At rest:**
+
   - Database: AES-256 encrypted volumes (AWS EBS encryption)
   - Passwords: bcrypt with salt rounds = 12
   - API keys: Hashed in DB with SHA-256, shown only once
@@ -1435,21 +1454,24 @@ Webhook Format:
 ### 7.5 GDPR/CCPA Compliance
 
 - **Right to access:** Export endpoint `/user/data`
+
   - Returns all user data in JSON format
   - Available within 24 hours
   - Rate limited to once per day
 
 - **Right to deletion:** Delete cascade user data
+
   - Soft delete first (30-day grace period)
   - Hard delete after 30 days
   - Audit log of deletion
 
 - **Data minimization:** Store only essential data
+
   - No IP logging beyond 30 days
   - No browser fingerprinting
   - Anonymous usage stats only
 
-- **Retention policy:** 
+- **Retention policy:**
   - User data: Until account deletion
   - Trends data: 30 days in hot storage, 1 year in cold storage
   - Logs: 90 days
@@ -1466,11 +1488,11 @@ BEGIN
         'user', row_to_json(users),
         'topics', (SELECT jsonb_agg(row_to_json(topics)) FROM topics WHERE user_id = $1),
         'alerts', (SELECT jsonb_agg(row_to_json(alerts)) FROM alerts WHERE user_id = $1),
-        'trends', (SELECT jsonb_agg(row_to_json(trends)) FROM trends WHERE topic_id IN 
+        'trends', (SELECT jsonb_agg(row_to_json(trends)) FROM trends WHERE topic_id IN
                    (SELECT id FROM topics WHERE user_id = $1) LIMIT 1000)
     ) INTO result
     FROM users WHERE id = $1;
-    
+
     RETURN result;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -1485,19 +1507,19 @@ rate_limits:
     topics_per_hour: 2
     search_per_minute: 5
     alerts_per_hour: 20
-    
+
   pro:
     trends_per_minute: 60
     topics_per_hour: 10
     search_per_minute: 30
     alerts_per_hour: 100
-    
+
   enterprise:
     trends_per_minute: 300
     topics_per_hour: 50
     search_per_minute: 100
     alerts_per_hour: 500
-    
+
   admin:
     trends_per_minute: 1000
     topics_per_hour: 1000
@@ -1530,19 +1552,19 @@ def generate_api_key(user_id: str) -> dict:
     """Generate a new API key pair"""
     # Generate random key
     key = f"vk_{secrets.token_urlsafe(32)}"
-    
+
     # Hash for storage
     key_hash = hashlib.sha256(key.encode()).hexdigest()
-    
+
     # Create HMAC for signing requests
     signing_key = secrets.token_hex(32)
-    
+
     # Store hash (not the actual key)
     db.execute(
         "INSERT INTO api_keys (user_id, key_hash, signing_key, created_at) VALUES ($1, $2, $3, NOW())",
         user_id, key_hash, signing_key
     )
-    
+
     # Return the actual key (only shown once)
     return {
         "api_key": key,
@@ -1608,26 +1630,27 @@ def verify_api_key(api_key: str) -> bool:
 
 ### 8.2 High-Fidelity Design System
 
-| Element | Specification |
-|---------|---------------|
-| **Primary Color** | #6366F1 (Indigo) - Trust, intelligence |
-| **Secondary** | #10B981 (Emerald) - Growth, positive |
-| **Danger** | #EF4444 (Red) - Alerts, negative |
-| **Warning** | #F59E0B (Amber) - Caution |
-| **Background** | #F9FAFB (Light gray) - Clean, modern |
-| **Surface** | #FFFFFF (White) - Cards, modals |
-| **Text Primary** | #111827 (Almost black) |
-| **Text Secondary** | #6B7280 (Gray) |
-| **Typography** | Inter (sans-serif) - Modern, readable |
-| **Font Sizes** | 12px, 14px, 16px, 20px, 24px, 32px, 48px |
-| **Border Radius** | 8px (cards), 4px (buttons), 9999px (badges) |
-| **Spacing** | 4px base (4, 8, 12, 16, 24, 32, 48, 64) |
-| **Shadows** | sm: 0 1px 2px rgba(0,0,0,0.05), md: 0 4px 6px rgba(0,0,0,0.1) |
-| **Transitions** | 150ms ease-in-out |
+| Element            | Specification                                                 |
+| ------------------ | ------------------------------------------------------------- |
+| **Primary Color**  | #6366F1 (Indigo) - Trust, intelligence                        |
+| **Secondary**      | #10B981 (Emerald) - Growth, positive                          |
+| **Danger**         | #EF4444 (Red) - Alerts, negative                              |
+| **Warning**        | #F59E0B (Amber) - Caution                                     |
+| **Background**     | #F9FAFB (Light gray) - Clean, modern                          |
+| **Surface**        | #FFFFFF (White) - Cards, modals                               |
+| **Text Primary**   | #111827 (Almost black)                                        |
+| **Text Secondary** | #6B7280 (Gray)                                                |
+| **Typography**     | Inter (sans-serif) - Modern, readable                         |
+| **Font Sizes**     | 12px, 14px, 16px, 20px, 24px, 32px, 48px                      |
+| **Border Radius**  | 8px (cards), 4px (buttons), 9999px (badges)                   |
+| **Spacing**        | 4px base (4, 8, 12, 16, 24, 32, 48, 64)                       |
+| **Shadows**        | sm: 0 1px 2px rgba(0,0,0,0.05), md: 0 4px 6px rgba(0,0,0,0.1) |
+| **Transitions**    | 150ms ease-in-out                                             |
 
 ### 8.3 Key User Flows
 
 #### Flow 1: Receiving an Alert
+
 1. User gets Discord notification
 2. Clicks link → Dashboard (authenticated automatically if session exists)
 3. Sees trend card with AI summary at top of page
@@ -1640,6 +1663,7 @@ def verify_api_key(api_key: str) -> bool:
 6. Can save trend to collection
 
 #### Flow 2: Creating a Topic
+
 1. Dashboard → "New Topic" button
 2. Enter name, keywords (supports boolean operators)
 3. Select platforms to monitor (Reddit, X, RSS, News)
@@ -1649,6 +1673,7 @@ def verify_api_key(api_key: str) -> bool:
 7. Save → Topic appears in list with initial trends
 
 #### Flow 3: Morning Brief
+
 1. User opens dashboard
 2. See "Your Morning Brief" section (updated 8 AM local time)
 3. Top 5 trends from last 24h with AI summaries
@@ -1657,6 +1682,7 @@ def verify_api_key(api_key: str) -> bool:
 6. One-click "Deep Dive" on any trend
 
 #### Flow 4: Semantic Search
+
 1. User types natural language query: "AI video tools competition"
 2. System converts to embedding, searches vector DB
 3. Returns trends ranked by semantic similarity
@@ -1667,7 +1693,8 @@ def verify_api_key(api_key: str) -> bool:
 
 ```css
 /* Breakpoints */
-@media (max-width: 640px) { /* Mobile */
+@media (max-width: 640px) {
+  /* Mobile */
   .trend-heatmap {
     grid-template-columns: 1fr;
   }
@@ -1679,13 +1706,15 @@ def verify_api_key(api_key: str) -> bool:
   }
 }
 
-@media (min-width: 641px) and (max-width: 1024px) { /* Tablet */
+@media (min-width: 641px) and (max-width: 1024px) {
+  /* Tablet */
   .trend-heatmap {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
-@media (min-width: 1025px) { /* Desktop */
+@media (min-width: 1025px) {
+  /* Desktop */
   .trend-heatmap {
     grid-template-columns: repeat(3, 1fr);
   }
@@ -1725,24 +1754,24 @@ Multi-Cloud Strategy (Year 2):
 
 ### 9.2 Compute Requirements
 
-| Environment | Instance Type | vCPU | RAM | Nodes | Total Cost/Month |
-|-------------|--------------|------|-----|-------|------------------|
-| **Development** | t3.medium | 2 | 4GB | 1-2 | $50-100 |
-| **Staging** | t3.large | 2 | 8GB | 3-5 | $300-500 |
-| **Production (MVP)** | t3.xlarge | 4 | 16GB | 5-10 | $1,000-2,000 |
-| **Production (Year 1)** | c5.2xlarge | 8 | 16GB | 10-20 | $3,000-6,000 |
-| **Production (Year 2)** | c5.4xlarge | 16 | 32GB | 20-40 | $10,000-20,000 |
+| Environment             | Instance Type | vCPU | RAM  | Nodes | Total Cost/Month |
+| ----------------------- | ------------- | ---- | ---- | ----- | ---------------- |
+| **Development**         | t3.medium     | 2    | 4GB  | 1-2   | $50-100          |
+| **Staging**             | t3.large      | 2    | 8GB  | 3-5   | $300-500         |
+| **Production (MVP)**    | t3.xlarge     | 4    | 16GB | 5-10  | $1,000-2,000     |
+| **Production (Year 1)** | c5.2xlarge    | 8    | 16GB | 10-20 | $3,000-6,000     |
+| **Production (Year 2)** | c5.4xlarge    | 16   | 32GB | 20-40 | $10,000-20,000   |
 
 ### 9.3 Storage Requirements
 
-| Data Type | Storage Type | Size (MVP) | Growth/Month | Retention |
-|-----------|--------------|------------|--------------|-----------|
-| **PostgreSQL** | gp3 EBS | 50GB | 10GB | 30 days hot, 1 year cold |
-| **Vector DB** | io2 EBS | 20GB | 5GB | 7 days |
-| **Object Storage** | S3 | 100GB | 20GB | 90 days |
-| **Metrics** | TimescaleDB | 10GB | 2GB | 13 months |
-| **Logs** | S3 + Athena | 50GB | 10GB | 90 days |
-| **Backups** | S3 Glacier | 200GB | 40GB | 1 year |
+| Data Type          | Storage Type | Size (MVP) | Growth/Month | Retention                |
+| ------------------ | ------------ | ---------- | ------------ | ------------------------ |
+| **PostgreSQL**     | gp3 EBS      | 50GB       | 10GB         | 30 days hot, 1 year cold |
+| **Vector DB**      | io2 EBS      | 20GB       | 5GB          | 7 days                   |
+| **Object Storage** | S3           | 100GB      | 20GB         | 90 days                  |
+| **Metrics**        | TimescaleDB  | 10GB       | 2GB          | 13 months                |
+| **Logs**           | S3 + Athena  | 50GB       | 10GB         | 90 days                  |
+| **Backups**        | S3 Glacier   | 200GB      | 40GB         | 1 year                   |
 
 ### 9.4 Kubernetes Configuration
 
@@ -1753,7 +1782,7 @@ cluster:
   regions:
     - us-east-1 (primary)
     - us-west-2 (DR)
-  
+
   nodeGroups:
     - name: system
       instanceTypes: [t3.medium]
@@ -1761,18 +1790,18 @@ cluster:
       maxSize: 4
       labels:
         role: system
-      taints: []  # No taints - run system pods
-    
+      taints: [] # No taints - run system pods
+
     - name: services
       instanceTypes: [t3.xlarge]
       minSize: 3
       maxSize: 20
       labels:
         role: services
-      taints: []  # General purpose
-    
+      taints: [] # General purpose
+
     - name: analytics
-      instanceTypes: [c5.2xlarge]  # Compute optimized for LLM
+      instanceTypes: [c5.2xlarge] # Compute optimized for LLM
       minSize: 2
       maxSize: 10
       labels:
@@ -1780,8 +1809,8 @@ cluster:
       taints:
         - key: "analytics"
           value: "true"
-          effect: "NoSchedule"  # Only analytics pods
-    
+          effect: "NoSchedule" # Only analytics pods
+
     - name: spot
       instanceTypes: [t3.xlarge, c5.2xlarge]
       spot: true
@@ -1789,7 +1818,7 @@ cluster:
       maxSize: 10
       labels:
         role: spot
-      taints: []  # For non-critical batch jobs
+      taints: [] # For non-critical batch jobs
 
 # Resource quotas per namespace
 apiVersion: v1
@@ -1816,18 +1845,18 @@ Network Design:
     - public: 10.0.1.0/24, 10.0.2.0/24 (load balancers)
     - private: 10.0.10.0/24, 10.0.11.0/24 (services)
     - data: 10.0.20.0/24, 10.0.21.0/24 (databases)
-  
+
   Security Groups:
     - load-balancer: Allow 80, 443 from internet
     - services: Allow from load-balancer only
     - databases: Allow from services only
     - bastion: Allow SSH from office IPs only
-  
+
   CDN: CloudFront
     - Static assets cache TTL: 1 day
     - API caching: Disabled (dynamic content)
     - DDoS protection: AWS Shield
-  
+
   DNS: Route53
     - app.viralis.ai → CloudFront
     - api.viralis.ai → Load Balancer
@@ -1843,19 +1872,19 @@ Service Limits:
     Max connections: 500 concurrent
     Queue depth warning: 10,000 messages
     Scale when: CPU > 70% for 2 min OR queue > 5,000
-  
+
   Crawler Service:
     Max concurrent crawls: 50
     Rate limit: 10 requests/sec per domain
     Queue depth warning: 1,000 URLs
     Scale when: Queue > 500 for 5 min
-  
+
   Analytics Service:
     Max LLM requests/sec: 20 (by token budget)
     Max embeddings/sec: 100
     Queue depth warning: 500 trends
     Scale when: Queue > 200 for 5 min
-  
+
   Kafka:
     Partitions per topic: 6
     Replication factor: 3
@@ -1863,13 +1892,13 @@ Service Limits:
     Retention period: 7 days
     Max consumer lag: 5,000 messages
     Scale when: Lag > 2,000 for 5 min
-  
+
   PostgreSQL:
     Max connections: 100 (adjustable)
     Max table size: 100GB before partitioning
     Slow query threshold: 100ms
     Replication lag warning: 10 seconds
-  
+
   Vector DB:
     Max vectors per collection: 1M
     Max search latency: 100ms p95
@@ -1883,13 +1912,13 @@ Auto-scaling Triggers:
     - Kafka lag > 1,000 messages
     - Request queue > 100 per pod
     - Request rate > 1000 req/min per pod
-  
+
   Scale down when (all):
     - CPU < 30% for 10 minutes
     - Memory < 40% for 10 minutes
     - Kafka lag < 100 messages
     - After 10pm if traffic pattern allows
-  
+
   Scale cooldown:
     - Scale up: 3 minutes between actions
     - Scale down: 10 minutes between actions
@@ -1991,22 +2020,22 @@ Stack Components:
     - Scrape interval: 30s
     - Retention: 30 days
     - Alerting: Alertmanager
-  
+
   Logging: ELK Stack (Elasticsearch, Logstash, Kibana)
     - Ship logs via Filebeat
     - Retention: 90 days (hot), 1 year (cold)
     - Parse structured logs (JSON)
-  
+
   Tracing: Jaeger/OpenTelemetry
     - Sampling rate: 10% (adaptive)
     - Retention: 7 days
     - Focus on critical paths: ingestion → alert
-  
+
   APM: Sentry
     - Error tracking
     - Performance monitoring
     - Release tracking
-  
+
   Synthetic Monitoring: Checkly/Playwright
     - Critical user journeys
     - 5-minute intervals
@@ -2142,7 +2171,7 @@ detection_lead_time_hours = Histogram(
     "kafka_partition": 3,
     "kafka_offset": 15000
   },
-  "user_id": "user_789",  // only if authenticated
+  "user_id": "user_789", // only if authenticated
   "request_id": "req_xyz789"
 }
 ```
@@ -2161,7 +2190,7 @@ groups:
           severity: warning
         annotations:
           summary: "High CPU usage on {{ $labels.pod }}"
-          
+
       - alert: PodDown
         expr: kube_deployment_status_replicas_unavailable > 0
         for: 2m
@@ -2169,7 +2198,7 @@ groups:
           severity: critical
         annotations:
           summary: "Pod {{ $labels.deployment }} is down"
-          
+
   - name: application
     rules:
       - alert: HighErrorRate
@@ -2179,7 +2208,7 @@ groups:
           severity: critical
         annotations:
           summary: "Error rate > 1% for {{ $labels.service }}"
-          
+
       - alert: KafkaLagHigh
         expr: kafka_consumer_lag > 1000
         for: 5m
@@ -2187,14 +2216,14 @@ groups:
           severity: warning
         annotations:
           summary: "Kafka lag > 1000 for consumer group"
-          
+
       - alert: LLMTokenSpike
         expr: rate(llm_tokens_total[10m]) > 100000
         labels:
           severity: warning
         annotations:
           summary: "Unusual LLM token usage detected"
-          
+
   - name: business
     rules:
       - alert: NoActiveUsers
@@ -2204,7 +2233,7 @@ groups:
           severity: info
         annotations:
           summary: "No active users for 1 hour"
-          
+
       - alert: DetectionLagIncreasing
         expr: avg_over_time(detection_lead_time_hours[1h]) < 1
         for: 2h
@@ -2247,13 +2276,13 @@ Runbooks:
 
 ### 11.1 Recovery Objectives
 
-| Metric | Target | Measurement |
-|--------|--------|-------------|
-| **RTO (Recovery Time Objective)** | < 4 hours | Time from disaster to full functionality |
-| **RPO (Recovery Point Objective)** | < 15 minutes | Maximum data loss |
-| **MTTR (Mean Time to Recover)** | < 30 min | Average recovery time |
-| **MTBF (Mean Time Between Failures)** | > 30 days | Average time between incidents |
-| **Backup Success Rate** | > 99% | Automated backup verification |
+| Metric                                | Target       | Measurement                              |
+| ------------------------------------- | ------------ | ---------------------------------------- |
+| **RTO (Recovery Time Objective)**     | < 4 hours    | Time from disaster to full functionality |
+| **RPO (Recovery Point Objective)**    | < 15 minutes | Maximum data loss                        |
+| **MTTR (Mean Time to Recover)**       | < 30 min     | Average recovery time                    |
+| **MTBF (Mean Time Between Failures)** | > 30 days    | Average time between incidents           |
+| **Backup Success Rate**               | > 99%        | Automated backup verification            |
 
 ### 11.2 Backup Strategy
 
@@ -2265,12 +2294,12 @@ Database Backups:
     - Retention: 30 days (hot), 12 months (cold)
     - Location: S3 with cross-region replication
     - Encryption: AES-256 at rest
-    
+
   Vector DB:
     - Snapshot: Daily at 03:00 UTC
     - Retention: 7 days
     - Location: S3 (same region)
-    
+
   File Storage (S3):
     - Versioning enabled
     - Cross-region replication
@@ -2318,7 +2347,7 @@ SELECT COUNT(*) FROM trends WHERE detected_at > NOW() - INTERVAL '1 day';
 
 -- Check for corruption
 SELECT schemaname, tablename,有无corruption
-FROM pg_stat_user_tables 
+FROM pg_stat_user_tables
 WHERE 有无corruption = true;  -- hypothetical check
 EOF
 
@@ -2336,15 +2365,15 @@ echo "Backup verification successful"
 #### Scenario 1: Single AZ Failure
 
 ```yaml
-Impact: 
+Impact:
   - Some pods become unavailable
   - Potential increased latency
-  
+
 Response:
   - Kubernetes automatically reschedules pods to other AZs
   - Monitor for any persistent issues
   - No customer impact expected
-  
+
 Recovery Time: < 5 minutes (automatic)
 ```
 
@@ -2354,14 +2383,14 @@ Recovery Time: < 5 minutes (automatic)
 Impact:
   - Complete service outage in affected region
   - Data loss if primary DB in that region
-  
+
 Response:
   1. DNS failover to secondary region (Route53 health check)
   2. Promote read replica in secondary region to primary
   3. Scale up services in secondary region
   4. Update application config to point to new DB
   5. Verify functionality with smoke tests
-  
+
 Recovery Time: < 15 minutes (manual approval)
 
 Runbook:
@@ -2381,14 +2410,14 @@ Runbook:
         }
       }]
     }'
-  
+
   # Step 2: Promote replica
   aws rds promote-read-replica \
     --db-instance-identifier viralis-secondary
-  
+
   # Step 3: Update Kubernetes config
   kubectl set env deployment/viralis-api DATABASE_URL=$NEW_PRIMARY_URL
-  
+
   # Step 4: Verify
   curl -f https://api.viralis.ai/health
 ```
@@ -2399,15 +2428,14 @@ Runbook:
 Impact:
   - Incorrect data visible to users
   - Potential business logic errors
-  
-Response:
-  1. Immediately stop services writing to DB
+
+Response: 1. Immediately stop services writing to DB
   2. Identify last known good backup (point-in-time recovery)
   3. Restore to that point
   4. Replay transactions from WAL if available
   5. Verify data integrity
   6. Resume services
-  
+
 Recovery Time: < 30 minutes (with PITR)
 
 Prevention:
@@ -2418,13 +2446,13 @@ Prevention:
 
 ### 11.5 Disaster Recovery Testing
 
-| Frequency | Test | Success Criteria |
-|-----------|------|------------------|
-| **Daily** | Backup verification | Backup can be restored and validated |
-| **Weekly** | Single pod failure | Kubernetes reschedules within 30s |
-| **Monthly** | AZ failover | Services rebalanced within 5 min |
-| **Quarterly** | Full region failover | Complete failover within 15 min |
-| **Annually** | Full DR simulation | All DR procedures work, team trained |
+| Frequency     | Test                 | Success Criteria                     |
+| ------------- | -------------------- | ------------------------------------ |
+| **Daily**     | Backup verification  | Backup can be restored and validated |
+| **Weekly**    | Single pod failure   | Kubernetes reschedules within 30s    |
+| **Monthly**   | AZ failover          | Services rebalanced within 5 min     |
+| **Quarterly** | Full region failover | Complete failover within 15 min      |
+| **Annually**  | Full DR simulation   | All DR procedures work, team trained |
 
 ### 11.6 Business Continuity
 
@@ -2434,12 +2462,12 @@ Communication Plan:
   - Twitter: @viralis_status for major incidents
   - Email: Incident reports to all affected users
   - Slack: #incidents channel for internal coordination
-  
+
 Communication Templates:
   - Incident Detected: "We're investigating an issue with [service]"
   - Root Cause Found: "We've identified the issue as [cause]"
   - Resolution: "Service has been restored. Post-mortem at [link]"
-  
+
 Post-Mortem Process:
   1. Timeline of events
   2. Root cause analysis
@@ -2454,24 +2482,24 @@ Post-Mortem Process:
 
 ### 12.1 Monthly Cost Breakdown (MVP)
 
-| Category | Item | Cost | Notes |
-|----------|------|------|-------|
-| **Compute** | EKS (3 t3.xlarge) | $450 | 3 nodes × $150 |
-| | Spot instances | $100 | For batch processing |
-| **Database** | RDS PostgreSQL | $200 | db.t3.large |
-| | Qdrant Cloud | $50 | 1GB vector storage |
-| | ElastiCache Redis | $50 | cache.t3.micro |
-| **Storage** | EBS volumes | $50 | 200GB total |
-| | S3 + Glacier | $30 | 100GB + backups |
-| **Network** | Data transfer | $50 | 1TB outbound |
-| | Load balancer | $20 | 2 ALBs |
-| **Monitoring** | Grafana Cloud | $0 | Free tier |
-| | Sentry | $0 | Developer tier |
-| **External APIs** | OpenAI | $300 | 1M tokens/month |
-| | Reddit API | $0 | Free tier |
-| | X API | $100 | Basic tier |
-| | Proxies | $50 | For crawling |
-| **Total** | | **$1,450** | Within $1,500 budget |
+| Category          | Item              | Cost       | Notes                |
+| ----------------- | ----------------- | ---------- | -------------------- |
+| **Compute**       | EKS (3 t3.xlarge) | $450       | 3 nodes × $150       |
+|                   | Spot instances    | $100       | For batch processing |
+| **Database**      | RDS PostgreSQL    | $200       | db.t3.large          |
+|                   | Qdrant Cloud      | $50        | 1GB vector storage   |
+|                   | ElastiCache Redis | $50        | cache.t3.micro       |
+| **Storage**       | EBS volumes       | $50        | 200GB total          |
+|                   | S3 + Glacier      | $30        | 100GB + backups      |
+| **Network**       | Data transfer     | $50        | 1TB outbound         |
+|                   | Load balancer     | $20        | 2 ALBs               |
+| **Monitoring**    | Grafana Cloud     | $0         | Free tier            |
+|                   | Sentry            | $0         | Developer tier       |
+| **External APIs** | OpenAI            | $300       | 1M tokens/month      |
+|                   | Reddit API        | $0         | Free tier            |
+|                   | X API             | $100       | Basic tier           |
+|                   | Proxies           | $50        | For crawling         |
+| **Total**         |                   | **$1,450** | Within $1,500 budget |
 
 ### 12.2 Cost Optimization Strategies
 
@@ -2479,7 +2507,7 @@ Post-Mortem Process:
 # cost_optimizer.py
 class CostOptimizer:
     """Cost control mechanisms for Viralis"""
-    
+
     strategies = {
         "LLM Caching": {
             "pattern": "Semantic cache with TTL 24h",
@@ -2499,7 +2527,7 @@ class CostOptimizer:
             """,
             "savings": "~40% on repeated trends"
         },
-        
+
         "Batch Processing": {
             "pattern": "Group similar trends every 5 min",
             "implementation": """
@@ -2509,7 +2537,7 @@ class CostOptimizer:
                     batches = defaultdict(list)
                     for trend in trends:
                         batches[trend.topic_id].append(trend)
-                    
+
                     # Process each batch with single LLM call
                     for topic_id, batch in batches.items():
                         context = get_topic_context(topic_id)
@@ -2519,7 +2547,7 @@ class CostOptimizer:
             """,
             "savings": "~30% on API calls"
         },
-        
+
         "Model Tiering": {
             "pattern": "Use appropriate model for each task",
             "implementation": """
@@ -2529,7 +2557,7 @@ class CostOptimizer:
                     'sentiment_analysis': 'local-model',  # Free
                     'embedding': 'text-embedding-3-small' # $0.13/1M tokens
                 }
-                
+
                 def select_model(task, trend_value):
                     if trend_value > 90:  # High-value trend
                         return 'gpt-4'
@@ -2537,7 +2565,7 @@ class CostOptimizer:
             """,
             "savings": "~60% vs all-GPT-4"
         },
-        
+
         "Dynamic Scaling": {
             "pattern": "Scale to zero during low traffic",
             "implementation": """
@@ -2566,7 +2594,7 @@ class CostOptimizer:
             """,
             "savings": "~20% on infrastructure"
         },
-        
+
         "Data Lifecycle": {
             "pattern": "Move cold data to cheaper storage",
             "implementation": """
@@ -2595,7 +2623,7 @@ class CostOptimizer:
             """,
             "savings": "~70% on storage costs"
         },
-        
+
         "Reserved Instances": {
             "pattern": "Commit to 1-year for baseline",
             "implementation": """
@@ -2607,7 +2635,7 @@ class CostOptimizer:
             "savings": "~40% on compute baseline"
         }
     }
-    
+
     @classmethod
     def estimate_monthly_savings(cls):
         """Estimate total savings from all strategies"""
@@ -2629,17 +2657,17 @@ AWS Budget Alerts:
   - Threshold: 80% of monthly budget ($1,200)
   - Action: Email to founders + Slack #finance
   - Frequency: Daily when over threshold
-  
+
   - Threshold: 100% of monthly budget ($1,500)
   - Action: PagerDuty alert to CTO
   - Auto-actions: Scale down non-critical services
-  
+
 LLM Token Budget:
   - Daily limit: 50,000 tokens ($~15)
   - Weekly limit: 300,000 tokens ($~90)
   - Monthly limit: 1.2M tokens ($~360)
   - Alert at 80% of each
-  
+
   Auto-protection:
     - Switch to cheaper model if approaching limit
     - Queue non-critical analysis for next day
@@ -2651,7 +2679,7 @@ LLM Token Budget:
 ```sql
 -- Cost attribution by user tier
 CREATE VIEW cost_by_tier AS
-SELECT 
+SELECT
     u.plan,
     COUNT(DISTINCT u.id) as users,
     SUM(t.llm_tokens) as total_tokens,
@@ -2681,10 +2709,10 @@ Free Tier Limits:
   - Alerts: Email only, max 5/day
   - Historical data: 7 days
   - API calls: 100/day
-  
+
   Cost per free user: $0.05/month
   Breakeven: Need 3% conversion to pro ($49/mo)
-  
+
 Pro Tier Value:
   - Real-time alerts
   - Unlimited trends
@@ -2692,7 +2720,7 @@ Pro Tier Value:
   - Discord/Slack integration
   - 30-day history
   - API access (1000 calls/day)
-  
+
   Cost per pro user: $2.00/month
   Margin: 96% ($47 profit/user)
 ```
@@ -2705,7 +2733,7 @@ Pro Tier Value:
 
 ```yaml
 # docker-compose.local.yml
-version: '3.8'
+version: "3.8"
 
 services:
   # Databases
@@ -2813,7 +2841,7 @@ services:
       - mock-reddit
       - mock-twitter
     volumes:
-      - ./services/ingestion:/app  # hot reload
+      - ./services/ingestion:/app # hot reload
 
   analytics-service:
     build: ./services/analytics
@@ -2824,7 +2852,7 @@ services:
       KAFKA_BROKERS: localhost:9092
       POSTGRES_URL: postgresql://dev:dev123@postgres:5432/viralis_dev
       QDRANT_URL: http://qdrant:6333
-      OPENAI_API_KEY: ${OPENAI_API_KEY}  # from .env
+      OPENAI_API_KEY: ${OPENAI_API_KEY} # from .env
     depends_on:
       - kafka
       - postgres
@@ -2978,7 +3006,7 @@ def generate_reddit_posts(count=100):
     """Generate mock Reddit posts for testing"""
     subreddits = ['artificial', 'technology', 'machinelearning', 'singularity']
     keywords = ['sora', 'runway', 'pika', 'ai video', 'openai', 'gemini']
-    
+
     posts = []
     for i in range(count):
         post = {
@@ -2992,11 +3020,11 @@ def generate_reddit_posts(count=100):
             "url": f"https://reddit.com/r/artificial/comments/mock_{i}"
         }
         posts.append(post)
-    
+
     # Write to file for WireMock
     with open('mocks/reddit/__files/posts.json', 'w') as f:
         json.dump({"data": {"children": [{"data": p} for p in posts]}}, f)
-    
+
     # Create mapping for WireMock
     mapping = {
         "request": {
@@ -3011,7 +3039,7 @@ def generate_reddit_posts(count=100):
             }
         }
     }
-    
+
     with open('mocks/reddit/mappings/posts.json', 'w') as f:
         json.dump(mapping, f, indent=2)
 
@@ -3042,16 +3070,16 @@ case $COMMAND in
     echo "Grafana: http://localhost:3001 (admin/admin)"
     echo "Prometheus: http://localhost:9090"
     ;;
-    
+
   stop)
     echo "Stopping development environment..."
     docker-compose -f docker-compose.local.yml down
     ;;
-    
+
   logs)
     docker-compose -f docker-compose.local.yml logs -f ${@:2}
     ;;
-    
+
   reset)
     echo "Resetting databases..."
     docker-compose -f docker-compose.local.yml down -v
@@ -3062,24 +3090,24 @@ case $COMMAND in
     echo "Generating mock data..."
     python mocks/generate_mock_data.py
     ;;
-    
+
   test)
     echo "Running tests..."
     pytest tests/ -v --cov=services --cov-report=html
     ;;
-    
+
   lint)
     echo "Running linters..."
     flake8 services/
     black --check services/
     mypy services/
     ;;
-    
+
   seed)
     echo "Seeding test data..."
     python scripts/seed_data.py
     ;;
-    
+
   *)
     echo "Usage: ./dev.sh [start|stop|logs|reset|test|lint|seed]"
     ;;
@@ -3127,7 +3155,7 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
-        
+
       - id: security-scan
         name: security scan
         entry: bandit -r services/ -ll
@@ -3142,7 +3170,7 @@ repos:
 ### 14.1 Testing Pyramid
 
 ```
-         /\ 
+         /\
         /  \        E2E Tests (5%)
        /    \       - Critical user journeys
       /      \      - Multi-service flows
@@ -3171,32 +3199,32 @@ class TestPostProcessor:
             redis_client=Mock(),
             kafka_producer=Mock()
         )
-    
+
     def test_deduplication_new_post(self, processor):
         # Arrange
         post = {"id": "123", "platform": "reddit"}
         processor.redis_client.sismember.return_value = False
-        
+
         # Act
         result = processor.process_post(post)
-        
+
         # Assert
         assert result == True
         processor.redis_client.sadd.assert_called_once()
         processor.kafka_producer.send.assert_called_once()
-    
+
     def test_deduplication_duplicate_post(self, processor):
         # Arrange
         post = {"id": "123", "platform": "reddit"}
         processor.redis_client.sismember.return_value = True
-        
+
         # Act
         result = processor.process_post(post)
-        
+
         # Assert
         assert result == False
         processor.kafka_producer.send.assert_not_called()
-    
+
     @pytest.mark.parametrize("velocity,expected", [
         (10, False),  # Below threshold
         (25, True),   # Above threshold
@@ -3206,10 +3234,10 @@ class TestPostProcessor:
         # Arrange
         processor.threshold = 20
         history = [10] * 100  # Baseline 10
-        
+
         # Act
         result = processor.detect_anomaly(velocity, history)
-        
+
         # Assert
         assert result == expected
 ```
@@ -3238,13 +3266,13 @@ class TestIngestionPipeline:
             value_deserializer=lambda m: json.loads(m.decode()),
             auto_offset_reset='earliest'
         )
-        
+
         yield
-        
+
         # Cleanup
         self.producer.close()
         self.consumer.close()
-    
+
     async def test_end_to_end_flow(self):
         # 1. Send test post to ingestion
         test_post = {
@@ -3253,9 +3281,9 @@ class TestIngestionPipeline:
             "content": "AI video tools are amazing!",
             "timestamp": "2026-03-03T14:30:00Z"
         }
-        
+
         self.producer.send('raw-events', test_post)
-        
+
         # 2. Wait for processing (with timeout)
         for _ in range(30):  # 30 seconds timeout
             messages = self.consumer.poll(timeout_ms=1000)
@@ -3267,17 +3295,17 @@ class TestIngestionPipeline:
                         assert record.value['velocity_score'] > 0
                         assert 'summary' in record.value
                         return
-        
+
         pytest.fail("No processed event received within timeout")
-    
+
     async def test_crawler_integration(self):
         # Test Crawl4AI with real URLs
         from services.crawler.crawl4ai_wrapper import crawl_url
-        
+
         # Use a test URL that won't change
         url = "https://example.com"
         result = await crawl_url(url)
-        
+
         assert result['success'] == True
         assert result['markdown'] is not None
         assert len(result['markdown']) > 0
@@ -3287,88 +3315,88 @@ class TestIngestionPipeline:
 
 ```javascript
 // tests/api/trends.spec.js
-import { test, expect } from '@playwright/test';
+import { test, expect } from "@playwright/test";
 
-test.describe('Trends API', () => {
+test.describe("Trends API", () => {
   let authToken;
-  
+
   test.beforeAll(async ({ request }) => {
     // Login to get token
-    const response = await request.post('/v1/auth/login', {
+    const response = await request.post("/v1/auth/login", {
       data: {
-        email: 'test@viralis.ai',
-        password: 'password123'
-      }
+        email: "test@viralis.ai",
+        password: "password123",
+      },
     });
-    
+
     const data = await response.json();
     authToken = data.token;
   });
-  
-  test('GET /trends returns trends', async ({ request }) => {
-    const response = await request.get('/v1/trends', {
+
+  test("GET /trends returns trends", async ({ request }) => {
+    const response = await request.get("/v1/trends", {
       headers: {
-        'Authorization': `Bearer ${authToken}`
+        Authorization: `Bearer ${authToken}`,
       },
       params: {
         limit: 10,
-        min_velocity: 20
-      }
+        min_velocity: 20,
+      },
     });
-    
+
     expect(response.status()).toBe(200);
-    
+
     const data = await response.json();
     expect(Array.isArray(data.data)).toBe(true);
     expect(data.data.length).toBeLessThanOrEqual(10);
-    
+
     // Verify trend structure
     if (data.data.length > 0) {
       const trend = data.data[0];
-      expect(trend).toHaveProperty('id');
-      expect(trend).toHaveProperty('velocity_score');
+      expect(trend).toHaveProperty("id");
+      expect(trend).toHaveProperty("velocity_score");
       expect(trend.velocity_score).toBeGreaterThanOrEqual(20);
     }
   });
-  
-  test('GET /trends/:id returns detailed trend', async ({ request }) => {
+
+  test("GET /trends/:id returns detailed trend", async ({ request }) => {
     // First get a trend ID
-    const listResponse = await request.get('/v1/trends', {
-      headers: { 'Authorization': `Bearer ${authToken}` },
-      params: { limit: 1 }
+    const listResponse = await request.get("/v1/trends", {
+      headers: { Authorization: `Bearer ${authToken}` },
+      params: { limit: 1 },
     });
-    
+
     const listData = await listResponse.json();
     const trendId = listData.data[0].id;
-    
+
     // Get details
     const detailResponse = await request.get(`/v1/trends/${trendId}`, {
-      headers: { 'Authorization': `Bearer ${authToken}` }
+      headers: { Authorization: `Bearer ${authToken}` },
     });
-    
+
     expect(detailResponse.status()).toBe(200);
-    
+
     const detail = await detailResponse.json();
-    expect(detail).toHaveProperty('sources');
+    expect(detail).toHaveProperty("sources");
     expect(Array.isArray(detail.sources)).toBe(true);
   });
-  
-  test('POST /topics creates new topic', async ({ request }) => {
-    const response = await request.post('/v1/topics', {
-      headers: { 'Authorization': `Bearer ${authToken}` },
+
+  test("POST /topics creates new topic", async ({ request }) => {
+    const response = await request.post("/v1/topics", {
+      headers: { Authorization: `Bearer ${authToken}` },
       data: {
-        name: 'Test Topic',
-        keywords: ['test', 'integration'],
-        platforms: ['reddit', 'twitter'],
-        threshold: 30
-      }
+        name: "Test Topic",
+        keywords: ["test", "integration"],
+        platforms: ["reddit", "twitter"],
+        threshold: 30,
+      },
     });
-    
+
     expect(response.status()).toBe(201);
-    
+
     const topic = await response.json();
     expect(topic.id).toBeDefined();
-    expect(topic.name).toBe('Test Topic');
+    expect(topic.name).toBe("Test Topic");
   });
 });
 ```
@@ -3377,35 +3405,35 @@ test.describe('Trends API', () => {
 
 ```javascript
 // tests/load/scenarios.js
-import http from 'k6/http';
-import { check, sleep } from 'k6';
-import { Rate } from 'k6/metrics';
+import http from "k6/http";
+import { check, sleep } from "k6";
+import { Rate } from "k6/metrics";
 
-const errorRate = new Rate('errors');
+const errorRate = new Rate("errors");
 
 export const options = {
   scenarios: {
     viral_spike: {
-      executor: 'ramping-arrival-rate',
+      executor: "ramping-arrival-rate",
       startRate: 10,
-      timeUnit: '1s',
+      timeUnit: "1s",
       preAllocatedVUs: 50,
       maxVUs: 500,
       stages: [
-        { target: 100, duration: '2m' },  // Ramp up
-        { target: 500, duration: '5m' },  // Peak
-        { target: 0, duration: '2m' },    // Ramp down
+        { target: 100, duration: "2m" }, // Ramp up
+        { target: 500, duration: "5m" }, // Peak
+        { target: 0, duration: "2m" }, // Ramp down
       ],
       thresholds: {
-        http_req_duration: ['p(95)<500'],
-        http_req_failed: ['rate<0.01'],
+        http_req_duration: ["p(95)<500"],
+        http_req_failed: ["rate<0.01"],
       },
     },
     steady_state: {
-      executor: 'constant-arrival-rate',
+      executor: "constant-arrival-rate",
       rate: 50,
-      timeUnit: '1s',
-      duration: '1h',
+      timeUnit: "1s",
+      duration: "1h",
       preAllocatedVUs: 20,
       maxVUs: 50,
     },
@@ -3414,44 +3442,47 @@ export const options = {
 
 export default function () {
   // Get auth token (simulate login once per VU)
-  const loginRes = http.post('https://api.viralis.ai/v1/auth/login', {
+  const loginRes = http.post("https://api.viralis.ai/v1/auth/login", {
     email: `test.user.${__VU}@example.com`,
-    password: 'password123',
+    password: "password123",
   });
-  
+
   check(loginRes, {
-    'login successful': (r) => r.status === 200,
+    "login successful": (r) => r.status === 200,
   }) || errorRate.add(1);
-  
-  const token = loginRes.json('token');
-  
+
+  const token = loginRes.json("token");
+
   // Mix of API calls
   const operations = [
-    () => http.get('https://api.viralis.ai/v1/trends', {
-      headers: { 'Authorization': `Bearer ${token}` },
-      params: { limit: 20 },
-    }),
-    () => http.get('https://api.viralis.ai/v1/trends?min_velocity=50', {
-      headers: { 'Authorization': `Bearer ${token}` },
-    }),
-    () => http.post('https://api.viralis.ai/v1/search', {
-      headers: { 
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ q: 'AI video' }),
-    }),
+    () =>
+      http.get("https://api.viralis.ai/v1/trends", {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { limit: 20 },
+      }),
+    () =>
+      http.get("https://api.viralis.ai/v1/trends?min_velocity=50", {
+        headers: { Authorization: `Bearer ${token}` },
+      }),
+    () =>
+      http.post("https://api.viralis.ai/v1/search", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ q: "AI video" }),
+      }),
   ];
-  
+
   // Pick random operation
   const op = operations[Math.floor(Math.random() * operations.length)];
   const res = op();
-  
+
   check(res, {
-    'status is 200': (r) => r.status === 200,
-    'response time < 500ms': (r) => r.timings.duration < 500,
+    "status is 200": (r) => r.status === 200,
+    "response time < 500ms": (r) => r.timings.duration < 500,
   }) || errorRate.add(1);
-  
+
   sleep(Math.random() * 2 + 1); // Random think time 1-3s
 }
 ```
@@ -3469,11 +3500,11 @@ class TestSecurity:
     def setup_method(self):
         self.zap = ZAPv2(apikey='api-key', proxies={'http': 'http://localhost:8080'})
         self.target = 'https://staging.viralis.ai'
-    
+
     def test_sql_injection(self):
         """Test for SQL injection vulnerabilities"""
         payloads = ["' OR '1'='1", "'; DROP TABLE users; --", "' UNION SELECT * FROM users--"]
-        
+
         for payload in payloads:
             response = requests.get(
                 f"{self.target}/v1/trends",
@@ -3483,20 +3514,20 @@ class TestSecurity:
             # Should not return 500 or expose errors
             assert response.status_code not in [500, 503]
             assert "sql" not in response.text.lower()
-    
+
     def test_xss_vulnerability(self):
         """Test for XSS vulnerabilities"""
         payload = "<script>alert('xss')</script>"
-        
+
         response = requests.post(
             f"{self.target}/v1/topics",
             json={"name": payload, "keywords": ["test"]},
             headers={"Authorization": "Bearer test-token"}
         )
-        
+
         # Payload should be escaped
         assert payload not in response.text
-    
+
     def test_rate_limiting(self):
         """Test rate limiting protection"""
         responses = []
@@ -3506,21 +3537,21 @@ class TestSecurity:
                 headers={"Authorization": "Bearer test-token"}
             )
             responses.append(response.status_code)
-        
+
         # Should see 429 at some point
         assert 429 in responses
-    
+
     def test_jwt_security(self):
         """Test JWT token security"""
         # Test expired token
         expired_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjE1MTYyMzkwMjJ9.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
-        
+
         response = requests.get(
             f"{self.target}/v1/trends",
             headers={"Authorization": f"Bearer {expired_token}"}
         )
         assert response.status_code == 401
-        
+
         # Test tampered token
         tampered = expired_token[:-5] + "abcde"
         response = requests.get(
@@ -3536,14 +3567,14 @@ class TestSecurity:
 
 ### 15.1 Risky Areas to Prototype
 
-| Risk | POC Approach | Success Criteria | Timeline |
-|------|--------------|------------------|----------|
-| **Crawl4AI reliability** | Test on 100 URLs, measure success rate | >95% success, <5s per URL | Week 1 |
-| **LLM token costs** | Simulate 1,000 trends, calculate cost | <$0.10 per trend | Week 1-2 |
-| **Real-time detection** | Mock 10k events/sec, measure lag | <30s from ingestion | Week 2 |
-| **Vector search speed** | Query 1M embeddings | <100ms p95 | Week 2 |
-| **Discord webhook reliability** | Send 1,000 alerts, measure delivery | >99% delivered, <10s | Week 1 |
-| **API rate limit handling** | Simulate 429 responses, test backoff | Graceful degradation, no crashes | Week 2 |
+| Risk                            | POC Approach                           | Success Criteria                 | Timeline |
+| ------------------------------- | -------------------------------------- | -------------------------------- | -------- |
+| **Crawl4AI reliability**        | Test on 100 URLs, measure success rate | >95% success, <5s per URL        | Week 1   |
+| **LLM token costs**             | Simulate 1,000 trends, calculate cost  | <$0.10 per trend                 | Week 1-2 |
+| **Real-time detection**         | Mock 10k events/sec, measure lag       | <30s from ingestion              | Week 2   |
+| **Vector search speed**         | Query 1M embeddings                    | <100ms p95                       | Week 2   |
+| **Discord webhook reliability** | Send 1,000 alerts, measure delivery    | >99% delivered, <10s             | Week 1   |
+| **API rate limit handling**     | Simulate 429 responses, test backoff   | Graceful degradation, no crashes | Week 2   |
 
 ### 15.2 Crawl4AI Reliability POC
 
@@ -3557,7 +3588,7 @@ from statistics import mean, stdev
 
 async def test_crawler_reliability():
     """Test Crawl4AI on 100 diverse URLs"""
-    
+
     # Sample URLs from different domains
     test_urls = [
         "https://techcrunch.com/2026/03/01/ai-news",
@@ -3566,18 +3597,18 @@ async def test_crawler_reliability():
         "https://medium.com/tag/ai",
         # ... 97 more URLs
     ]
-    
+
     results = []
-    
+
     crawler = WebCrawler(verbose=True)
-    
+
     for i, url in enumerate(test_urls):
         start = time.time()
-        
+
         try:
             result = await crawler.crawl(url)
             duration = time.time() - start
-            
+
             results.append({
                 'url': url,
                 'success': True,
@@ -3585,7 +3616,7 @@ async def test_crawler_reliability():
                 'content_length': len(result.markdown) if result else 0,
                 'error': None
             })
-            
+
         except Exception as e:
             duration = time.time() - start
             results.append({
@@ -3595,33 +3626,33 @@ async def test_crawler_reliability():
                 'content_length': 0,
                 'error': str(e)
             })
-        
+
         # Be polite, don't hammer servers
         await asyncio.sleep(1)
-        
+
         if i % 10 == 0:
             print(f"Progress: {i}/100")
-    
+
     # Analyze results
     success_rate = sum(1 for r in results if r['success']) / len(results)
     durations = [r['duration'] for r in results if r['success']]
     avg_duration = mean(durations) if durations else 0
-    
+
     print(f"Success Rate: {success_rate*100:.1f}%")
     print(f"Avg Duration: {avg_duration:.2f}s")
     print(f"95th Percentile: {sorted(durations)[int(len(durations)*0.95)]:.2f}s")
-    
+
     # Log failures
     failures = [r for r in results if not r['success']]
     if failures:
         print("\nFailures:")
         for f in failures[:10]:  # Show first 10
             print(f"  {f['url']}: {f['error']}")
-    
+
     # Success criteria
     assert success_rate > 0.95, f"Success rate {success_rate} below 95%"
     assert avg_duration < 5, f"Avg duration {avg_duration}s above 5s"
-    
+
     return results
 
 if __name__ == "__main__":
@@ -3639,10 +3670,10 @@ import numpy as np
 
 async def simulate_llm_costs():
     """Simulate LLM costs for 1000 trends"""
-    
+
     client = AsyncOpenAI()
     encoder = tiktoken.encoding_for_model("gpt-4")
-    
+
     # Sample trend data
     trends = [
         {
@@ -3652,49 +3683,49 @@ async def simulate_llm_costs():
         }
         for i in range(1000)
     ]
-    
+
     total_tokens = 0
     total_cost = 0
-    
+
     for i, trend in enumerate(trends):
         # Construct prompt
         prompt = f"""
         Analyze this trend: {trend['title']}
-        
+
         Posts ({len(trend['posts'])}):
         {chr(10).join(trend['posts'][:10])}...
-        
+
         Articles:
         {chr(10).join(trend['urls'])}
-        
+
         Provide:
         1. 3-sentence summary
         2. Sentiment (positive/negative/neutral)
         3. Key themes
         """
-        
+
         # Count tokens
         tokens = len(encoder.encode(prompt))
-        
+
         # Simulate completion (assume 200 token response)
         total_tokens += tokens + 200
-        
+
         # Cost calculation (gpt-4: $0.03/1K input, $0.06/1K output)
         input_cost = (tokens / 1000) * 0.03
         output_cost = (200 / 1000) * 0.06
         total_cost += input_cost + output_cost
-        
+
         if i % 100 == 0:
             print(f"Processed {i}/1000 trends, current cost: ${total_cost:.2f}")
-    
+
     print(f"\nResults for 1000 trends:")
     print(f"Total tokens: {total_tokens:,}")
     print(f"Total cost: ${total_cost:.2f}")
     print(f"Cost per trend: ${total_cost/1000:.3f}")
-    
+
     # Success criteria: <$0.10 per trend
     assert total_cost/1000 < 0.10, f"Cost per trend ${total_cost/1000:.3f} > $0.10"
-    
+
     # Optimization suggestions
     if total_cost/1000 > 0.05:
         print("\n⚠️  Cost higher than target. Consider:")
@@ -3720,19 +3751,19 @@ import json
 
 async def benchmark_ingestion_pipeline():
     """Benchmark end-to-end latency for 1000 posts"""
-    
+
     # Setup
     producer = KafkaProducer(
         bootstrap_servers='localhost:9092',
         value_serializer=lambda v: json.dumps(v).encode()
     )
-    
+
     latencies = []
-    
+
     # Generate and send 1000 posts
     for i in range(1000):
         start = time.time()
-        
+
         post = {
             "id": f"test_{i}",
             "platform": "reddit",
@@ -3740,21 +3771,21 @@ async def benchmark_ingestion_pipeline():
             "timestamp": time.time(),
             "test_start": start  # Embed start time
         }
-        
+
         # Send to Kafka
         future = producer.send('raw-events', post)
         result = future.get(timeout=10)
-        
+
         # Record send time
         latencies.append(time.time() - start)
-        
+
         if i % 100 == 0:
             print(f"Sent {i}/1000 posts")
-    
+
     # Wait for processing
     print("Waiting for processing...")
     await asyncio.sleep(30)
-    
+
     # Check processed trends
     consumer = KafkaConsumer(
         'processed-events',
@@ -3762,26 +3793,26 @@ async def benchmark_ingestion_pipeline():
         value_deserializer=lambda m: json.loads(m.decode()),
         auto_offset_reset='earliest'
     )
-    
+
     processed_count = 0
     end_to_end_latencies = []
-    
+
     for message in consumer:
         processed = message.value
-        
+
         if 'test_start' in processed:
             end_to_end = time.time() - processed['test_start']
             end_to_end_latencies.append(end_to_end)
             processed_count += 1
-        
+
         if processed_count >= 1000:
             break
-    
+
     print(f"\nResults:")
     print(f"Posts sent: 1000")
     print(f"Posts processed: {processed_count}")
     print(f"Success rate: {processed_count/1000*100:.1f}%")
-    
+
     if end_to_end_latencies:
         print(f"End-to-end latency (seconds):")
         print(f"  Mean: {np.mean(end_to_end_latencies):.2f}")
@@ -3789,10 +3820,10 @@ async def benchmark_ingestion_pipeline():
         print(f"  P95: {np.percentile(end_to_end_latencies, 95):.2f}")
         print(f"  P99: {np.percentile(end_to_end_latencies, 99):.2f}")
         print(f"  Max: {np.max(end_to_end_latencies):.2f}")
-        
+
         # Success criteria: P95 < 30s
         assert np.percentile(end_to_end_latencies, 95) < 30, "P95 latency > 30s"
-    
+
     producer.close()
     consumer.close()
 
@@ -3806,24 +3837,25 @@ if __name__ == "__main__":
 
 ### 16.1 Technical Risk Register
 
-| ID | Risk | Probability | Impact | Detection | Mitigation | Owner |
-|----|------|-------------|--------|-----------|------------|-------|
-| **T-01** | **Crawl4AI breaks on site updates** | High | Medium | Monitor failure rate >10% | Implement fallback to basic requests + BeautifulSoup; maintain multiple extraction strategies; cache results aggressively | Crawler Team |
-| **T-02** | **OpenAI API outage** | Medium | High | Health checks failing | Cache summaries with 7-day TTL; fallback to local Llama 3 model; queue trends for later processing | ML Team |
-| **T-03** | **Database connection pool exhaustion** | Medium | High | Connection errors >1% | Connection pooling (PgBouncer); read replicas for queries; implement circuit breakers | Platform Team |
-| **T-04** | **Kafka backlog during viral event** | Medium | Medium | Consumer lag >5000 | Auto-scaling consumers; dead-letter queue; prioritize critical topics | Platform Team |
-| **T-05** | **Vector DB cost explosion** | Low | Medium | Cost alerts >200% | Implement TTL (7 days); compress old vectors; tiered storage | Platform Team |
-| **T-06** | **API rate limits hit** | High | Medium | 429 responses >1% | Rotate keys; exponential backoff; respect rate limits; cache responses | Ingestion Team |
-| **T-07** | **Data breach (user PII)** | Low | Critical | Audit logs, intrusion detection | Encryption at rest and in transit; least privilege access; regular security audits | Security Team |
-| **T-08** | **LLM hallucination in summaries** | Medium | Medium | User feedback flagging | Confidence scoring; human review for critical trends; multiple model consensus | ML Team |
-| **T-09** | **Cloud provider region failure** | Low | High | Region health checks | Multi-region deployment; automated failover; data replication | Platform Team |
-| **T-10** | **Memory leak in long-running service** | Medium | Medium | Memory usage trending up | Daily pod rotation; memory profiling in CI; canary deployments | Platform Team |
-| **T-11** | **Regulatory changes (GDPR/CCPA)** | Low | Medium | Legal monitoring | Data minimization; right to deletion implemented; regular compliance audits | Legal/Product |
-| **T-12** | **Third-party API pricing hike** | Medium | High | Cost monitoring | Hybrid ingestion layer; scraping fallback; negotiate enterprise terms | Product Team |
+| ID       | Risk                                    | Probability | Impact   | Detection                       | Mitigation                                                                                                                | Owner          |
+| -------- | --------------------------------------- | ----------- | -------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------- | -------------- |
+| **T-01** | **Crawl4AI breaks on site updates**     | High        | Medium   | Monitor failure rate >10%       | Implement fallback to basic requests + BeautifulSoup; maintain multiple extraction strategies; cache results aggressively | Crawler Team   |
+| **T-02** | **OpenAI API outage**                   | Medium      | High     | Health checks failing           | Cache summaries with 7-day TTL; fallback to local Llama 3 model; queue trends for later processing                        | ML Team        |
+| **T-03** | **Database connection pool exhaustion** | Medium      | High     | Connection errors >1%           | Connection pooling (PgBouncer); read replicas for queries; implement circuit breakers                                     | Platform Team  |
+| **T-04** | **Kafka backlog during viral event**    | Medium      | Medium   | Consumer lag >5000              | Auto-scaling consumers; dead-letter queue; prioritize critical topics                                                     | Platform Team  |
+| **T-05** | **Vector DB cost explosion**            | Low         | Medium   | Cost alerts >200%               | Implement TTL (7 days); compress old vectors; tiered storage                                                              | Platform Team  |
+| **T-06** | **API rate limits hit**                 | High        | Medium   | 429 responses >1%               | Rotate keys; exponential backoff; respect rate limits; cache responses                                                    | Ingestion Team |
+| **T-07** | **Data breach (user PII)**              | Low         | Critical | Audit logs, intrusion detection | Encryption at rest and in transit; least privilege access; regular security audits                                        | Security Team  |
+| **T-08** | **LLM hallucination in summaries**      | Medium      | Medium   | User feedback flagging          | Confidence scoring; human review for critical trends; multiple model consensus                                            | ML Team        |
+| **T-09** | **Cloud provider region failure**       | Low         | High     | Region health checks            | Multi-region deployment; automated failover; data replication                                                             | Platform Team  |
+| **T-10** | **Memory leak in long-running service** | Medium      | Medium   | Memory usage trending up        | Daily pod rotation; memory profiling in CI; canary deployments                                                            | Platform Team  |
+| **T-11** | **Regulatory changes (GDPR/CCPA)**      | Low         | Medium   | Legal monitoring                | Data minimization; right to deletion implemented; regular compliance audits                                               | Legal/Product  |
+| **T-12** | **Third-party API pricing hike**        | Medium      | High     | Cost monitoring                 | Hybrid ingestion layer; scraping fallback; negotiate enterprise terms                                                     | Product Team   |
 
 ### 16.2 Risk Mitigation Details
 
 #### T-01: Crawl4AI Reliability
+
 ```python
 # Fallback strategy
 async def crawl_with_fallback(url):
@@ -3834,7 +3866,7 @@ async def crawl_with_fallback(url):
         readability_extract,
         just_return_url
     ]
-    
+
     for strategy in strategies:
         try:
             result = await strategy(url)
@@ -3843,11 +3875,12 @@ async def crawl_with_fallback(url):
         except Exception as e:
             logger.warning(f"Strategy {strategy.__name__} failed: {e}")
             continue
-    
+
     return None
 ```
 
 #### T-02: LLM Fallback
+
 ```python
 # Model fallback chain
 MODEL_PRIORITY = [
@@ -3876,28 +3909,28 @@ Security Incident Response Plan:
   Detection:
     - Automated: Intrusion detection, anomaly detection, audit logs
     - Manual: User reports, employee reports
-  
+
   Triage (within 15 min):
     - Determine scope (what data, how many users)
     - Severity assessment (Critical/High/Medium/Low)
     - Assign incident commander
-  
+
   Containment (within 1 hour):
     - Rotate all credentials
     - Isolate affected systems
     - Block suspicious IPs
     - Take forensic snapshots
-  
+
   Eradication (within 4 hours):
     - Patch vulnerability
     - Remove attacker access
     - Restore from clean backups
-  
+
   Recovery (within 24 hours):
     - Verify systems clean
     - Gradual service restoration
     - Enhanced monitoring
-  
+
   Communication:
     - Internal: Update leadership every hour
     - External: Status page, affected users (if data exposed)
@@ -4107,7 +4140,7 @@ spec:
     jitter: 0ms
   duration: 5m
   scheduler:
-    cron: "0 */6 * * *"  # Every 6 hours
+    cron: "0 */6 * * *" # Every 6 hours
 ```
 
 ```python
@@ -4118,7 +4151,7 @@ import kubernetes as k8s
 
 async def run_weekly_chaos():
     """Run scheduled chaos experiments"""
-    
+
     experiments = [
         {
             "name": "pod-kill-ingestion",
@@ -4140,34 +4173,35 @@ async def run_weekly_chaos():
             "manual_approval": True  # Requires human
         }
     ]
-    
+
     for exp in experiments:
         print(f"Running {exp['name']}...")
-        
+
         # Check if we should run now
         if not should_run(exp['cron']):
             continue
-        
+
         # Notify team
         await slack_notify(f"🚨 Starting chaos experiment: {exp['name']}")
-        
+
         try:
             # Run experiment
             result = await run_experiment(exp)
-            
+
             # Analyze results
             if result['success']:
                 await slack_notify(f"✅ Chaos experiment {exp['name']} succeeded")
             else:
                 await pagerduty_alert(f"⚠️ Chaos experiment {exp['name']} revealed issues")
-                
+
         except Exception as e:
             await pagerduty_alert(f"🔥 Chaos experiment {exp['name']} failed: {e}")
-        
+
         await asyncio.sleep(60)  # Between experiments
 ```
 
 **Tool Stack:**
+
 - **Chaos Mesh** - Kubernetes-native chaos engineering (free, open-source)
 - **Litmus** - Open-source chaos framework (alternative)
 - **k6** - Load testing + chaos validation
@@ -4175,24 +4209,25 @@ async def run_weekly_chaos():
 
 ### 17.4 Chaos Schedule
 
-| Frequency | Experiments | Responsibility | Success Rate |
-|-----------|------------|----------------|--------------|
-| **Daily (automated)** | Pod kills, network latency | CI/CD pipeline | 98% |
-| **Weekly** | Database failover, broker failure | Platform Team | 95% |
-| **Monthly** | Full region outage, cascade failures | SRE Team (Game Day) | 90% |
-| **Quarterly** | Security breach simulation | Security Team | 85% |
-| **Ad-hoc** | New service testing | Dev Team | N/A |
+| Frequency             | Experiments                          | Responsibility      | Success Rate |
+| --------------------- | ------------------------------------ | ------------------- | ------------ |
+| **Daily (automated)** | Pod kills, network latency           | CI/CD pipeline      | 98%          |
+| **Weekly**            | Database failover, broker failure    | Platform Team       | 95%          |
+| **Monthly**           | Full region outage, cascade failures | SRE Team (Game Day) | 90%          |
+| **Quarterly**         | Security breach simulation           | Security Team       | 85%          |
+| **Ad-hoc**            | New service testing                  | Dev Team            | N/A          |
 
 ### 17.5 Game Day Scenarios
 
 #### Scenario A: "Black Friday" Simulation
+
 ```
 Setup:
   - Simulate 10x normal traffic during major event (Super Bowl)
   - Inject multiple service failures simultaneously
   - Random pod kills every 5 minutes
   - 50% of database connections fail
-  
+
 Team: All engineering on-call
 Duration: 4 hours
 Goal: Test full system resilience under extreme conditions
@@ -4205,12 +4240,13 @@ Success Criteria:
 ```
 
 #### Scenario B: "Data Center Down"
+
 ```
 Setup:
   - Simulate entire AWS region failure (us-east-1)
   - Kill all pods, database primary
   - Block all traffic to region
-  
+
 Team: SRE + Platform team
 Duration: 2 hours
 Goal: Test multi-region failover
@@ -4223,6 +4259,7 @@ Success Criteria:
 ```
 
 #### Scenario C: "Cascading Failure"
+
 ```
 Setup:
   - Start with small cache miss
@@ -4242,27 +4279,27 @@ Success Criteria:
 
 ### 17.6 Resilience Metrics
 
-| Metric | Target | Measurement |
-|--------|--------|-------------|
-| **MTTR (Mean Time to Recover)** | < 30 min | Incident tracking |
-| **MTBF (Mean Time Between Failures)** | > 30 days | Monitoring |
-| **Chaos Experiment Success Rate** | > 90% | Chaos dashboard |
-| **Auto-recovery %** | > 95% | Incidents vs. self-healing |
-| **Circuit Breaker Opens** | < 5/day | Monitoring |
-| **Cache Hit Ratio** | > 80% | Redis metrics |
-| **Database Replication Lag** | < 5s | PostgreSQL metrics |
-| **Kafka Consumer Lag** | < 1000 | Kafka metrics |
+| Metric                                | Target    | Measurement                |
+| ------------------------------------- | --------- | -------------------------- |
+| **MTTR (Mean Time to Recover)**       | < 30 min  | Incident tracking          |
+| **MTBF (Mean Time Between Failures)** | > 30 days | Monitoring                 |
+| **Chaos Experiment Success Rate**     | > 90%     | Chaos dashboard            |
+| **Auto-recovery %**                   | > 95%     | Incidents vs. self-healing |
+| **Circuit Breaker Opens**             | < 5/day   | Monitoring                 |
+| **Cache Hit Ratio**                   | > 80%     | Redis metrics              |
+| **Database Replication Lag**          | < 5s      | PostgreSQL metrics         |
+| **Kafka Consumer Lag**                | < 1000    | Kafka metrics              |
 
 ### 17.7 Risk Register Update (Chaos Findings)
 
-| Finding from Chaos | Risk Level | Mitigation Added |
-|-------------------|------------|------------------|
-| Database connection pool exhausted during failover | High | PgBouncer, connection limits, pre-warmed connections |
-| Kafka rebalancing too slow during broker failure | Medium | Optimized partition count (6), consumer group config |
-| Cache stampede when Redis fails | Medium | Implement request coalescing, stale-while-revalidate |
-| LLM retry storm during API outage | High | Exponential backoff + circuit breaker, fallback to cache |
-| DNS timeout causing 5s delays | Medium | Cache DNS, use IP fallbacks, async DNS resolution |
-| Pod startup time too slow during scaling | Medium | Optimize Docker image, pre-pull on nodes, readiness probes |
+| Finding from Chaos                                 | Risk Level | Mitigation Added                                           |
+| -------------------------------------------------- | ---------- | ---------------------------------------------------------- |
+| Database connection pool exhausted during failover | High       | PgBouncer, connection limits, pre-warmed connections       |
+| Kafka rebalancing too slow during broker failure   | Medium     | Optimized partition count (6), consumer group config       |
+| Cache stampede when Redis fails                    | Medium     | Implement request coalescing, stale-while-revalidate       |
+| LLM retry storm during API outage                  | High       | Exponential backoff + circuit breaker, fallback to cache   |
+| DNS timeout causing 5s delays                      | Medium     | Cache DNS, use IP fallbacks, async DNS resolution          |
+| Pod startup time too slow during scaling           | Medium     | Optimize Docker image, pre-pull on nodes, readiness probes |
 
 ### 17.8 Blameless Post-Mortem Template
 
@@ -4274,6 +4311,7 @@ Success Criteria:
 **Impact:** [Users affected, features degraded]
 
 ## Timeline (UTC)
+
 - 14:30 - Issue detected (automated alert)
 - 14:32 - On-call engineer acknowledged
 - 14:35 - Initial diagnosis: database connection pool exhausted
@@ -4282,31 +4320,38 @@ Success Criteria:
 - 15:00 - Root cause identified
 
 ## Root Cause
+
 [Detailed explanation of what went wrong]
 
 ## Contributing Factors
+
 - [Factor 1]
 - [Factor 2]
 
 ## Detection
+
 How was this detected? (Alert, user report, monitoring)
 
 ## Resolution
+
 What fixed the issue?
 
 ## Action Items
-| Action | Owner | Due Date |
-|--------|-------|----------|
-| Add connection pool monitoring | Platform | YYYY-MM-DD |
-| Update runbook with failover steps | SRE | YYYY-MM-DD |
+
+| Action                                 | Owner    | Due Date   |
+| -------------------------------------- | -------- | ---------- |
+| Add connection pool monitoring         | Platform | YYYY-MM-DD |
+| Update runbook with failover steps     | SRE      | YYYY-MM-DD |
 | Chaos experiment for connection limits | Platform | YYYY-MM-DD |
 
 ## Lessons Learned
+
 - What went well?
 - What went wrong?
 - What can we improve?
 
 ## Blameless Statement
+
 This incident was caused by systemic issues, not individual error. Our focus is on improving systems, not assigning blame.
 ```
 
@@ -4314,55 +4359,55 @@ This incident was caused by systemic issues, not individual error. Our focus is 
 
 ## Appendix A: Technology Stack Summary
 
-| Layer | Technology | Justification |
-|-------|------------|---------------|
-| **Frontend** | React + TypeScript | Strong typing, large ecosystem |
-| **Mobile** | PWA (React) | One codebase, installable |
-| **API Gateway** | Kong | Open-source, plugin ecosystem |
-| **Service Mesh** | Istio | Observability, traffic control |
-| **Service Layer** | Go (ingestion), Python (AI) | Best tool for each job |
-| **Message Queue** | Apache Kafka | Reliable, scalable, exactly-once |
-| **Cache** | Redis | Fast, multi-purpose |
-| **Primary DB** | PostgreSQL | ACID, JSON support, reliable |
-| **Vector DB** | Qdrant | Open-source, fast similarity search |
-| **Time Series** | TimescaleDB | PostgreSQL extension |
-| **Object Storage** | S3/MinIO | Scalable, cost-effective |
-| **Container** | Docker | Standard, portable |
-| **Orchestration** | Kubernetes | Auto-scaling, self-healing |
-| **CI/CD** | GitHub Actions + ArgoCD | GitOps workflow |
-| **Monitoring** | Prometheus + Grafana | Industry standard |
-| **Logging** | ELK Stack | Centralized logs |
-| **Tracing** | Jaeger/OpenTelemetry | Distributed tracing |
-| **Chaos Engineering** | Chaos Mesh | Kubernetes-native |
-| **Infrastructure** | Terraform | Infrastructure as Code |
+| Layer                 | Technology                  | Justification                       |
+| --------------------- | --------------------------- | ----------------------------------- |
+| **Frontend**          | React + TypeScript          | Strong typing, large ecosystem      |
+| **Mobile**            | PWA (React)                 | One codebase, installable           |
+| **API Gateway**       | Kong                        | Open-source, plugin ecosystem       |
+| **Service Mesh**      | Istio                       | Observability, traffic control      |
+| **Service Layer**     | Go (ingestion), Python (AI) | Best tool for each job              |
+| **Message Queue**     | Apache Kafka                | Reliable, scalable, exactly-once    |
+| **Cache**             | Redis                       | Fast, multi-purpose                 |
+| **Primary DB**        | PostgreSQL                  | ACID, JSON support, reliable        |
+| **Vector DB**         | Qdrant                      | Open-source, fast similarity search |
+| **Time Series**       | TimescaleDB                 | PostgreSQL extension                |
+| **Object Storage**    | S3/MinIO                    | Scalable, cost-effective            |
+| **Container**         | Docker                      | Standard, portable                  |
+| **Orchestration**     | Kubernetes                  | Auto-scaling, self-healing          |
+| **CI/CD**             | GitHub Actions + ArgoCD     | GitOps workflow                     |
+| **Monitoring**        | Prometheus + Grafana        | Industry standard                   |
+| **Logging**           | ELK Stack                   | Centralized logs                    |
+| **Tracing**           | Jaeger/OpenTelemetry        | Distributed tracing                 |
+| **Chaos Engineering** | Chaos Mesh                  | Kubernetes-native                   |
+| **Infrastructure**    | Terraform                   | Infrastructure as Code              |
 
 ---
 
 ## Appendix B: Glossary
 
-| Term | Definition |
-|------|------------|
-| **Trend** | A topic or theme showing abnormal growth in discussion volume |
-| **Velocity Score** | Measure of how fast a trend is growing (0-100) |
-| **Detection Lead Time** | Hours ahead of mainstream tools a trend is detected |
-| **Crawl4AI** | AI-powered web crawler that extracts content and converts to markdown |
-| **Agentic Reasoning** | AI that not just analyzes but explains the "why" behind trends |
-| **Vector Embedding** | Numerical representation of text for semantic search |
-| **Semantic Search** | Search by meaning, not just keywords |
-| **PDB (Pod Disruption Budget)** | Kubernetes feature ensuring minimum pod availability |
-| **RTO/RPO** | Recovery Time Objective / Recovery Point Objective |
-| **Chaos Engineering** | Practice of intentionally injecting failures to test resilience |
+| Term                            | Definition                                                            |
+| ------------------------------- | --------------------------------------------------------------------- |
+| **Trend**                       | A topic or theme showing abnormal growth in discussion volume         |
+| **Velocity Score**              | Measure of how fast a trend is growing (0-100)                        |
+| **Detection Lead Time**         | Hours ahead of mainstream tools a trend is detected                   |
+| **Crawl4AI**                    | AI-powered web crawler that extracts content and converts to markdown |
+| **Agentic Reasoning**           | AI that not just analyzes but explains the "why" behind trends        |
+| **Vector Embedding**            | Numerical representation of text for semantic search                  |
+| **Semantic Search**             | Search by meaning, not just keywords                                  |
+| **PDB (Pod Disruption Budget)** | Kubernetes feature ensuring minimum pod availability                  |
+| **RTO/RPO**                     | Recovery Time Objective / Recovery Point Objective                    |
+| **Chaos Engineering**           | Practice of intentionally injecting failures to test resilience       |
 
 ---
 
 ## Document Approval
 
-| Role | Name | Signature | Date |
-|------|------|-----------|------|
-| **Technical Lead** | [Name] | | |
-| **Product Manager** | [Name] | | |
-| **Security Officer** | [Name] | | |
-| **CTO** | [Name] | | |
+| Role                 | Name   | Signature | Date |
+| -------------------- | ------ | --------- | ---- |
+| **Technical Lead**   | [Name] |           |      |
+| **Product Manager**  | [Name] |           |      |
+| **Security Officer** | [Name] |           |      |
+| **CTO**              | [Name] |           |      |
 
 ---
 
@@ -4591,30 +4636,30 @@ data:
   ANALYTICS_MODEL: "gpt-3.5-turbo"
   ANALYTICS_EMBEDDING_MODEL: "text-embedding-3-small"
   ALERT_BATCH_SIZE: "50"
-  
+
   # Thresholds
   TREND_VELOCITY_THRESHOLD: "20"
   ANOMALY_STD_DEV: "2.5"
   SENTIMENT_CONFIDENCE_THRESHOLD: "0.7"
-  
+
   # Kafka topics
   KAFKA_TOPIC_RAW: "raw-events"
   KAFKA_TOPIC_PROCESSED: "processed-events"
   KAFKA_TOPIC_ALERTS: "alerts"
   KAFKA_PARTITIONS: "6"
   KAFKA_REPLICATION_FACTOR: "3"
-  
+
   # Redis
   REDIS_CACHE_TTL_SECONDS: "3600"
   REDIS_SESSION_TTL_SECONDS: "86400"
   REDIS_RATE_LIMIT_WINDOW: "60"
-  
+
   # Feature flags
   FEATURE_CRAWL4AI: "true"
   FEATURE_SEMANTIC_SEARCH: "true"
   FEATURE_PREDICTIVE_SCORES: "false"
   FEATURE_MOCK_EXTERNAL: "false"
-  
+
   # Logging
   LOG_LEVEL: "info"
   LOG_FORMAT: "json"
@@ -4786,14 +4831,14 @@ fi
 
 ### Growth Projections
 
-| Metric | MVP | Month 6 | Year 1 | Year 2 | Year 3 |
-|--------|-----|---------|--------|--------|--------|
-| **Users** | 100 | 1,000 | 2,000 | 15,000 | 50,000 |
-| **Daily Events** | 10K | 100K | 500K | 2M | 10M |
-| **Trends/Day** | 100 | 1,000 | 5,000 | 20,000 | 100,000 |
-| **Storage (TB)** | 0.1 | 1 | 5 | 25 | 100 |
-| **LLM Tokens/Month** | 1M | 10M | 50M | 200M | 1B |
-| **API Calls/Day** | 10K | 100K | 500K | 2M | 10M |
+| Metric               | MVP | Month 6 | Year 1 | Year 2 | Year 3  |
+| -------------------- | --- | ------- | ------ | ------ | ------- |
+| **Users**            | 100 | 1,000   | 2,000  | 15,000 | 50,000  |
+| **Daily Events**     | 10K | 100K    | 500K   | 2M     | 10M     |
+| **Trends/Day**       | 100 | 1,000   | 5,000  | 20,000 | 100,000 |
+| **Storage (TB)**     | 0.1 | 1       | 5      | 25     | 100     |
+| **LLM Tokens/Month** | 1M  | 10M     | 50M    | 200M   | 1B      |
+| **API Calls/Day**    | 10K | 100K    | 500K   | 2M     | 10M     |
 
 ### Infrastructure Scaling Plan
 
@@ -4830,25 +4875,26 @@ Phase 3 (Scale - Year 2):
 
 ### GDPR Readiness
 
-| Requirement | Implementation | Status |
-|-------------|----------------|--------|
-| Right to access | `/user/data` export endpoint | ✅ |
-| Right to deletion | Soft delete + 30-day purge | ✅ |
-| Data minimization | No IP logging >30 days | ✅ |
-| Consent management | Cookie banner + preference center | ✅ |
-| Data Processing Agreement | Signed with all subprocessors | ✅ |
-| Breach notification | 72-hour process documented | ✅ |
-| Data Protection Officer | Appointed | ✅ |
+| Requirement               | Implementation                    | Status |
+| ------------------------- | --------------------------------- | ------ |
+| Right to access           | `/user/data` export endpoint      | ✅     |
+| Right to deletion         | Soft delete + 30-day purge        | ✅     |
+| Data minimization         | No IP logging >30 days            | ✅     |
+| Consent management        | Cookie banner + preference center | ✅     |
+| Data Processing Agreement | Signed with all subprocessors     | ✅     |
+| Breach notification       | 72-hour process documented        | ✅     |
+| Data Protection Officer   | Appointed                         | ✅     |
 
 ### SOC2 Readiness
 
-| Control | Implementation | Status |
-|---------|----------------|--------|
-| Security policy | Documented and reviewed | ✅ |
-| Access review | Quarterly user access review | ✅ |
-| Change management | CI/CD with approvals | ✅ |
-| Risk assessment | Quarterly risk review | ✅ |
-| Vendor management | All vendors assessed | ✅ |
-| Incident response | Documented and tested | ✅ |
-| Business continuity | DR plan tested quarterly | ✅ |
+| Control             | Implementation               | Status |
+| ------------------- | ---------------------------- | ------ |
+| Security policy     | Documented and reviewed      | ✅     |
+| Access review       | Quarterly user access review | ✅     |
+| Change management   | CI/CD with approvals         | ✅     |
+| Risk assessment     | Quarterly risk review        | ✅     |
+| Vendor management   | All vendors assessed         | ✅     |
+| Incident response   | Documented and tested        | ✅     |
+| Business continuity | DR plan tested quarterly     | ✅     |
+
 **Document Status:** ✅ **FINAL - APPROVED FOR IMPLEMENTATION**

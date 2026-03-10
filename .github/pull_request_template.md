@@ -1,22 +1,28 @@
 ## Description
+
 Provide a clear description of the changes introduced by this pull request.
 
 ## Related Issue
+
 Fixes # (issue)
 
 ## Type of Change
+
 - [ ] Bug fix (non-breaking change which fixes an issue)
 - [ ] New feature (non-breaking change which adds functionality)
 - [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
 - [ ] Documentation update
 
 ## Testing Done
+
 Explain the testing you've done to verify your changes. Include any relevant details about your test configuration.
 
 ## Screenshots (if applicable)
+
 If your changes affect the UI, please provide screenshots or GIFs of the before and after states.
 
 ## Checklist
+
 - [ ] My code follows the style guidelines of this project
 - [ ] I have performed a self-review of my own code
 - [ ] I have commented my code, particularly in hard-to-understand areas

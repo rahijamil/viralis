@@ -1,24 +1,24 @@
-import psycopg2
-import random
-import uuid
+"""Database seeding script for Viralis."""
+
 import datetime
 import os
+import random
+
+import psycopg2
 
 # Database connection parameters (can be overridden by environment variables)
-DB_HOST = os.getenv('DB_HOST', 'localhost')
-DB_PORT = os.getenv('DB_PORT', '5432')
-DB_NAME = os.getenv('DB_NAME', 'viralis')
-DB_USER = os.getenv('DB_USER', 'viralis')
-DB_PASS = os.getenv('DB_PASS', 'viralis_pass')
+DB_HOST = os.getenv("DB_HOST", "localhost")
+DB_PORT = os.getenv("DB_PORT", "5432")
+DB_NAME = os.getenv("DB_NAME", "viralis")
+DB_USER = os.getenv("DB_USER", "viralis")
+DB_PASS = os.getenv("DB_PASS", "viralis_pass")
+
 
 def seed_database():
+    """Seed the database with initial topics and trends."""
     try:
         conn = psycopg2.connect(
-            host=DB_HOST,
-            port=DB_PORT,
-            dbname=DB_NAME,
-            user=DB_USER,
-            password=DB_PASS
+            host=DB_HOST, port=DB_PORT, dbname=DB_NAME, user=DB_USER, password=DB_PASS
         )
         cur = conn.cursor()
 
@@ -30,17 +30,18 @@ def seed_database():
 
         # 2. Create some topics
         topics = [
-            ('AI Agents', ['ai', 'agents', 'automation']),
-            ('Clean Energy', ['solar', 'wind', 'renewables']),
-            ('Space Exploration', ['mars', 'spacex', 'nasa']),
-            ('Cybersecurity', ['hacking', 'security', 'privacy'])
+            ("AI Agents", ["ai", "agents", "automation"]),
+            ("Clean Energy", ["solar", "wind", "renewables"]),
+            ("Space Exploration", ["mars", "spacex", "nasa"]),
+            ("Cybersecurity", ["hacking", "security", "privacy"]),
         ]
 
         topic_ids = []
         for name, keywords in topics:
             cur.execute(
-                "INSERT INTO topics (user_id, name, keywords, platforms) VALUES (%s, %s, %s, %s) RETURNING id",
-                (user_id, name, keywords, ['twitter', 'reddit'])
+                "INSERT INTO topics (user_id, name, keywords, platforms) "
+                "VALUES (%s, %s, %s, %s) RETURNING id",
+                (user_id, name, keywords, ["twitter", "reddit"]),
             )
             topic_ids.append(cur.fetchone()[0])
 
@@ -55,10 +56,10 @@ def seed_database():
             "Deep space signal detected",
             "Quantum computer solves encryption",
             "AI regulations debated in Senate",
-            "Vertical farming startup raises $100M"
+            "Vertical farming startup raises $100M",
         ]
 
-        sentiments = ['positive', 'neutral', 'controversial']
+        sentiments = ["positive", "neutral", "controversial"]
 
         for i in range(10):
             topic_id = random.choice(topic_ids)
@@ -67,12 +68,21 @@ def seed_database():
             velocity_score = round(random.uniform(20.0, 95.0), 2)
             sentiment = random.choice(sentiments)
             detected_at = datetime.datetime.now() - datetime.timedelta(hours=random.randint(1, 48))
-            
+
             cur.execute(
-                """INSERT INTO trends (topic_id, title, description, velocity_score, sentiment, detected_at, ai_summary, sources) 
-                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""",
-                (topic_id, title, description, velocity_score, sentiment, detected_at, 
-                 f"AI summary for {title}", '{"source": "synthetic"}')
+                """INSERT INTO trends (topic_id, title, description, velocity_score,
+                sentiment, detected_at, ai_summary, sources)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""",
+                (
+                    topic_id,
+                    title,
+                    description,
+                    velocity_score,
+                    sentiment,
+                    detected_at,
+                    f"AI summary for {title}",
+                    '{"source": "synthetic"}',
+                ),
             )
 
         conn.commit()
@@ -83,6 +93,7 @@ def seed_database():
 
     except Exception as e:
         print(f"Error seeding database: {e}")
+
 
 if __name__ == "__main__":
     seed_database()

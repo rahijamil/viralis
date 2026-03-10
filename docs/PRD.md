@@ -12,12 +12,12 @@ The specific problem Viralis v1.0 solves is **"The Insight Gap."** It automates 
 
 ## 2. Feature List & Prioritization (MoSCoW)
 
-| Category | Must-Have (P0) | Should-Have (P1) | Could-Have (P2) | Won't-Have (v1) |
-| --- | --- | --- | --- | --- |
-| **Ingestion** | Hybrid API + Crawl4AI | RSS & News Feeds | Video Transcript Scraper | Meta/Instagram API |
-| **Intelligence** | Trend Detection Algo | Agentic "Why" Report | Predictive Decay Score | Image/Meme OCR |
-| **Delivery** | Dashboard & Discord | Email Briefs | Slack Integration | SMS Alerts |
-| **Search** | Keyword Search | Vector/Semantic Search | Natural Language Query | User Collaboration |
+| Category         | Must-Have (P0)        | Should-Have (P1)       | Could-Have (P2)          | Won't-Have (v1)    |
+| ---------------- | --------------------- | ---------------------- | ------------------------ | ------------------ |
+| **Ingestion**    | Hybrid API + Crawl4AI | RSS & News Feeds       | Video Transcript Scraper | Meta/Instagram API |
+| **Intelligence** | Trend Detection Algo  | Agentic "Why" Report   | Predictive Decay Score   | Image/Meme OCR     |
+| **Delivery**     | Dashboard & Discord   | Email Briefs           | Slack Integration        | SMS Alerts         |
+| **Search**       | Keyword Search        | Vector/Semantic Search | Natural Language Query   | User Collaboration |
 
 ---
 
@@ -25,63 +25,58 @@ The specific problem Viralis v1.0 solves is **"The Insight Gap."** It automates 
 
 ### **User Story 1: The Alert**
 
-> *As a Content Creator, I want to receive a Discord alert when a topic spikes by >20% in 1 hour so I can be the first to post.*
+> _As a Content Creator, I want to receive a Discord alert when a topic spikes by >20% in 1 hour so I can be the first to post._
 
-* **Acceptance Criteria:**
-* System must detect spikes relative to a rolling 7-day baseline.
-* Alert must include: Topic Name, Platform Source, and a 1-sentence AI summary.
-* Latency from detection to Discord message must be $< 60$ seconds.
-
-
+- **Acceptance Criteria:**
+- System must detect spikes relative to a rolling 7-day baseline.
+- Alert must include: Topic Name, Platform Source, and a 1-sentence AI summary.
+- Latency from detection to Discord message must be $< 60$ seconds.
 
 ### **User Story 2: The Deep Dive**
 
-> *As a PR Manager, I want an AI-generated "Context Report" for a trend so I don't have to read 100 comments.*
+> _As a PR Manager, I want an AI-generated "Context Report" for a trend so I don't have to read 100 comments._
 
-* **Acceptance Criteria:**
-* Report must synthesize data from at least 2 different platforms (e.g., X + Reddit).
-* Must use Crawl4AI to extract and summarize the *root* linked article.
-* Report must provide a "Sentiment Direction" (Positive/Negative/Controversial).
-
-
+- **Acceptance Criteria:**
+- Report must synthesize data from at least 2 different platforms (e.g., X + Reddit).
+- Must use Crawl4AI to extract and summarize the _root_ linked article.
+- Report must provide a "Sentiment Direction" (Positive/Negative/Controversial).
 
 ---
 
 ## 4. Functional Requirements
 
-* **FR-1: Data Deduplication:** The system must hash incoming posts to ensure the same news story from multiple sources is treated as a single "Event."
-* **FR-2: Agentic Orchestration:** The "Analyst Agent" must trigger only when a "Velocity Threshold" is met to save on LLM token costs.
-* **FR-3: Threshold Management:** Users must be able to set custom sensitivity levels (e.g., "Only alert on 50% spikes").
+- **FR-1: Data Deduplication:** The system must hash incoming posts to ensure the same news story from multiple sources is treated as a single "Event."
+- **FR-2: Agentic Orchestration:** The "Analyst Agent" must trigger only when a "Velocity Threshold" is met to save on LLM token costs.
+- **FR-3: Threshold Management:** Users must be able to set custom sensitivity levels (e.g., "Only alert on 50% spikes").
 
 ---
 
 ## 5. Non-Functional Requirements
 
-* **Performance:** * **Latency:** API response time for dashboard data $< 300$ms.
-* **Processing:** Time from raw scrape to Vector DB embedding $< 5$s.
+- **Performance:** \* **Latency:** API response time for dashboard data $< 300$ms.
+- **Processing:** Time from raw scrape to Vector DB embedding $< 5$s.
 
+- **Scalability:** Microservices must be stateless and deployable via **Kubernetes (K8s)** to handle horizontal scaling during viral events.
+- **Security:** \* Mandatory **OAuth 2.0** for user authentication.
+- API Key rotation for all third-party data providers.
 
-* **Scalability:** Microservices must be stateless and deployable via **Kubernetes (K8s)** to handle horizontal scaling during viral events.
-* **Security:** * Mandatory **OAuth 2.0** for user authentication.
-* API Key rotation for all third-party data providers.
-
-
-* **Observability:** Implementation of **OpenTelemetry** to track agent "Reasoning Traces" for debugging hallucinations.
+- **Observability:** Implementation of **OpenTelemetry** to track agent "Reasoning Traces" for debugging hallucinations.
 
 ## 5.3 Load Testing & Scalability Requirements
 
 ### 5.3.1 Concurrent User Targets
 
-| Tier | Expected Concurrent | Peak Load Target | Burst Capacity |
-|------|---------------------|------------------|----------------|
-| **MVP Launch** | 100 users | 500 users | 1,000 users |
-| **Year 1** | 1,000 users | 5,000 users | 10,000 users |
-| **Year 2** | 5,000 users | 20,000 users | 50,000 users |
-| **Enterprise** | N/A | N/A | 100,000+ (with dedicated instances) |
+| Tier           | Expected Concurrent | Peak Load Target | Burst Capacity                      |
+| -------------- | ------------------- | ---------------- | ----------------------------------- |
+| **MVP Launch** | 100 users           | 500 users        | 1,000 users                         |
+| **Year 1**     | 1,000 users         | 5,000 users      | 10,000 users                        |
+| **Year 2**     | 5,000 users         | 20,000 users     | 50,000 users                        |
+| **Enterprise** | N/A                 | N/A              | 100,000+ (with dedicated instances) |
 
 ### 5.3.2 Load Testing Scenarios
 
 **Scenario 1: Viral Event Spike**
+
 ```
 Context: A major trend breaks (e.g., Super Bowl moment)
 User Behavior:
@@ -99,6 +94,7 @@ Success Criteria:
 ```
 
 **Scenario 2: Morning Rush Hour**
+
 ```
 Context: 9 AM EST - creators checking daily briefs
 User Behavior:
@@ -114,6 +110,7 @@ Success Criteria:
 ```
 
 **Scenario 3: API Burst (Enterprise)**
+
 ```
 Context: Enterprise client polling API every minute
 User Behavior:
@@ -138,15 +135,15 @@ scenarios:
     startRate: 10
     timeUnit: 1s
     stages:
-      - target: 100  # 100 req/sec
+      - target: 100 # 100 req/sec
         duration: 2m
-      - target: 500  # 500 req/sec
+      - target: 500 # 500 req/sec
         duration: 5m
       - target: 1000 # peak
         duration: 5m
       - target: 0
         duration: 2m
-    
+
 thresholds:
   http_req_duration: ["p(95)<500"]
   http_req_failed: ["rate<0.01"]
@@ -165,19 +162,19 @@ spec:
   minReplicas: 3
   maxReplicas: 20
   metrics:
-  - type: Resource
-    resource:
-      name: cpu
-      target:
-        type: Utilization
-        averageUtilization: 70
-  - type: Pods
-    pods:
-      metric:
-        name: kafka_consumer_lag
-      target:
-        type: AverageValue
-        averageValue: 1000
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Pods
+      pods:
+        metric:
+          name: kafka_consumer_lag
+        target:
+          type: AverageValue
+          averageValue: 1000
 ```
 
 ---
@@ -194,22 +191,25 @@ spec:
 
 ### **6.2 Dashboard Interaction (Frontend)**
 
-* **View A (The Heatmap):** Visual grid of active trends sized by velocity.
-* **View B (The Inspect Panel):** Clicking a trend slides out the AI Report, sentiment charts, and raw source links.
+- **View A (The Heatmap):** Visual grid of active trends sized by velocity.
+- **View B (The Inspect Panel):** Clicking a trend slides out the AI Report, sentiment charts, and raw source links.
 
 ## 7. Launch Checklist
 
 ### Alpha (Week 4)
+
 - [ ] 1 data source (Reddit) fully operational
 - [ ] Basic trend detection algorithm
 - [ ] Manual alert testing with 5 beta users
 
 ### Beta (Week 8)
+
 - [ ] 3+ data sources integrated
 - [ ] Agentic reasoning working at 70% accuracy
 - [ ] 50 active users providing feedback
 
 ### Production (Week 12)
+
 - [ ] 90% detection accuracy
 - [ ] < 15 min end-to-end latency
 - [ ] Self-healing pipelines operational
