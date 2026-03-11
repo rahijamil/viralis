@@ -17,7 +17,7 @@ echo ""
 # Check Docker Hub Secrets (Requires GH CLI)
 echo -e "Checking GitHub Secrets..."
 if command -v gh &> /dev/null; then
-    for secret in DOCKER_HUB_USERNAME DOCKER_HUB_TOKEN; do
+    for secret in DOCKERHUB_USERNAME DOCKERHUB_TOKEN; do
         if gh secret list | grep -q "$secret"; then
             echo -e "  ${GREEN}✅ $secret configured${NC}"
         else

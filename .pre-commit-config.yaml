@@ -46,17 +46,17 @@ repos:
     hooks:
       - id: go-fmt
         name: go fmt
-        entry: /opt/homebrew/bin/gofmt -w
+        entry: gofmt -w
         language: system
         types: [go]
       - id: go-imports
         name: go imports
-        entry: /Users/rahijamil/go/bin/goimports -w
+        entry: goimports -w
         language: system
         types: [go]
       - id: golangci-lint
         name: golangci-lint
-        entry: /opt/homebrew/bin/golangci-lint run --fix
+        entry: golangci-lint run --fix
         language: system
         types: [go]
 

@@ -12,9 +12,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-COPY pyproject.toml .
-# Create a dummy requirements.txt and install
-RUN touch requirements.txt && \
+COPY requirements.txt .
+RUN mkdir -p /install && \
     pip install --no-cache-dir --prefix=/install -r requirements.txt
 
 # --- Final Stage ---
