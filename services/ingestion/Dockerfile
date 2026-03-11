@@ -27,7 +27,7 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 
 # Metadata
 LABEL org.opencontainers.image.source="https://github.com/rahijamil/viralis"
-LABEL org.opencontainers.image.description="Ingestion service for Viralis"
+LABEL org.opencontainers.image.description="Viralis ingestion service"
 LABEL org.opencontainers.image.licenses="MIT"
 LABEL maintainer="rahijamil"
 

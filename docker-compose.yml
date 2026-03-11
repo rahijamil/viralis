@@ -78,11 +78,14 @@ services:
       - DATABASE_URL=postgres://${POSTGRES_USER:-viralis}:${POSTGRES_PASSWORD:-viralis_pass}@postgres:5432/${POSTGRES_DB:-viralis}?sslmode=disable
     command: -d "/migrations" up
 
-  # --- Application Services (Placeholders) ---
+  # --- Application Services ---
   ingestion:
-    image: alpine
+    build:
+      context: ./services/ingestion
+      dockerfile: Dockerfile
     container_name: viralis-ingestion
-    command: /bin/sh -c "while true; do sleep 3600; done"
+    ports:
+      - "8080:8080"
     depends_on:
       migration:
         condition: service_completed_successfully
@@ -96,11 +99,15 @@ services:
       - DATABASE_URL=postgres://${POSTGRES_USER:-viralis}:${POSTGRES_PASSWORD:-viralis_pass}@postgres:5432/${POSTGRES_DB:-viralis}
       - KAFKA_BROKERS=kafka:29092
       - REDIS_URL=redis://redis:6379
+      - PORT=8080
 
   crawler:
-    image: alpine
+    build:
+      context: ./services/crawler
+      dockerfile: Dockerfile
     container_name: viralis-crawler
-    command: /bin/sh -c "while true; do sleep 3600; done"
+    ports:
+      - "8081:8080"
     depends_on:
       migration:
         condition: service_completed_successfully
@@ -108,11 +115,15 @@ services:
         condition: service_healthy
     environment:
       - KAFKA_BROKERS=kafka:29092
+      - PORT=8080
 
   analytics:
-    image: alpine
+    build:
+      context: ./services/analytics
+      dockerfile: Dockerfile
     container_name: viralis-analytics
-    command: /bin/sh -c "while true; do sleep 3600; done"
+    ports:
+      - "8082:8080"
     depends_on:
       migration:
         condition: service_completed_successfully
@@ -123,11 +134,15 @@ services:
     environment:
       - KAFKA_BROKERS=kafka:29092
       - QDRANT_URL=http://qdrant:6333
+      - PORT=8080
 
   alert:
-    image: alpine
+    build:
+      context: ./services/alert
+      dockerfile: Dockerfile
     container_name: viralis-alert
-    command: /bin/sh -c "while true; do sleep 3600; done"
+    ports:
+      - "8083:8080"
     depends_on:
       migration:
         condition: service_completed_successfully
@@ -138,11 +153,15 @@ services:
     environment:
       - KAFKA_BROKERS=kafka:29092
       - REDIS_URL=redis://redis:6379
+      - PORT=8080
 
   user-service:
-    image: alpine
+    build:
+      context: ./services/user
+      dockerfile: Dockerfile
     container_name: viralis-user
-    command: /bin/sh -c "while true; do sleep 3600; done"
+    ports:
+      - "8084:8080"
     depends_on:
       migration:
         condition: service_completed_successfully
@@ -153,6 +172,31 @@ services:
     environment:
       - DATABASE_URL=postgres://${POSTGRES_USER:-viralis}:${POSTGRES_PASSWORD:-viralis_pass}@postgres:5432/${POSTGRES_DB:-viralis}
       - REDIS_URL=redis://redis:6379
+      - PORT=8080
+
+  dashboard:
+    build:
+      context: ./services/dashboard
+      dockerfile: Dockerfile
+    container_name: viralis-dashboard
+    ports:
+      - "8085:8080"
+    depends_on:
+      migration:
+        condition: service_completed_successfully
+    environment:
+      - PORT=8080
+
+  ingestion-go:
+    build:
+      context: ./services/ingestion-go
+      dockerfile: Dockerfile
+    container_name: viralis-ingestion-go
+    ports:
+      - "8086:8080"
+    depends_on:
+      kafka:
+        condition: service_healthy
 
   seeder:
     build:

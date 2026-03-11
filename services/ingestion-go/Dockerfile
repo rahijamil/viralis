@@ -21,7 +21,7 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD ["./ingestion-service", "health"]
 
 LABEL org.opencontainers.image.source="https://github.com/rahijamil/viralis"
-LABEL org.opencontainers.image.description="Go ingestion service for Viralis"
+LABEL org.opencontainers.image.description="Viralis ingestion-go service"
 LABEL maintainer="rahijamil"
 
 EXPOSE 8080
