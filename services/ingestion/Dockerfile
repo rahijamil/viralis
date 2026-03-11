@@ -1,35 +1,34 @@
-# --- Build Stage ---
-FROM python:3.11-slim as builder
+# Multi-stage build for Python service
+FROM python:3.11-slim AS builder
 
 WORKDIR /app
-
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
-
-# hadolint ignore=DL3008
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    libpq-dev \
-    && rm -rf /var/lib/apt/lists/*
-
 COPY requirements.txt .
-RUN mkdir -p /install && \
-    pip install --no-cache-dir --prefix=/install -r requirements.txt
+RUN pip install --no-cache-dir --user -r requirements.txt
 
-# --- Final Stage ---
-FROM python:3.11-slim
-
+FROM python:3.11-slim AS runtime
 WORKDIR /app
 
-# Non-root user for security
-RUN groupadd -r viralis && useradd --no-log-init -r -g viralis viralis
+# Create non-root user
+RUN useradd --create-home appuser
+USER appuser
 
-COPY --from=builder /install /usr/local
-COPY . .
+# Copy dependencies from builder
+COPY --from=builder /root/.local /home/appuser/.local
+ENV PATH=/home/appuser/.local/bin:$PATH
 
-# Set correct permissions
-RUN chown -R viralis:viralis /app
+# Copy application code
+COPY --chown=appuser:appuser src/ ./src/
+COPY --chown=appuser:appuser requirements.txt .
 
-USER viralis
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD python -c "import requests; requests.get('http://localhost:8080/health')" || exit 1
 
+# Metadata
+LABEL org.opencontainers.image.source="https://github.com/rahijamil/viralis"
+LABEL org.opencontainers.image.description="Ingestion service for Viralis"
+LABEL org.opencontainers.image.licenses="MIT"
+LABEL maintainer="rahijamil"
+
+EXPOSE 8080
 CMD ["python", "src/main.py"]

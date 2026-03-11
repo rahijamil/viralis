@@ -1,27 +1,28 @@
-# --- Build Stage ---
+# Build stage
 FROM golang:1.21-alpine AS builder
-
 WORKDIR /app
-
 COPY go.mod go.su[m] ./
 RUN go mod download
-
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -o /viralis-ingestion ./cmd/app/main.go
+RUN go build -o ingestion-service ./cmd/app/main.go
 
-# --- Final Stage ---
-FROM alpine:3.18
+# Runtime stage
+FROM alpine:3.19
+RUN apk --no-cache add ca-certificates=20240203-r0
+WORKDIR /root/
 
-WORKDIR /app
+# Create non-root user
+RUN addgroup -g 1000 -S appuser && adduser -u 1000 -S appuser -G appuser
+USER appuser
 
-# Non-root user for security
-RUN addgroup -S viralis && adduser -S viralis -G viralis
+COPY --from=builder /app/ingestion-service .
 
-COPY --from=builder /viralis-ingestion .
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD ["./ingestion-service", "health"]
 
-# Set correct permissions
-RUN chown -R viralis:viralis /app
+LABEL org.opencontainers.image.source="https://github.com/rahijamil/viralis"
+LABEL org.opencontainers.image.description="Go ingestion service for Viralis"
+LABEL maintainer="rahijamil"
 
-USER viralis
-
-CMD ["./viralis-ingestion"]
+EXPOSE 8080
+CMD ["./ingestion-service"]
