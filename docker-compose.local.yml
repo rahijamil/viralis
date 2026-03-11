@@ -1,6 +1,6 @@
 services:
   ingestion:
-    build: 
+    build:
       context: ./services/ingestion
       dockerfile: Dockerfile
     ports:
