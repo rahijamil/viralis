@@ -13,8 +13,9 @@ RUN useradd --create-home appuser
 USER appuser
 
 # Copy dependencies from builder
-COPY --from=builder /root/.local /home/appuser/.local
+COPY --from=builder --chown=appuser:appuser /root/.local /home/appuser/.local
 ENV PATH=/home/appuser/.local/bin:$PATH
+ENV PYTHONUNBUFFERED=1
 
 # Copy application code
 COPY --chown=appuser:appuser src/ ./src/
